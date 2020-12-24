@@ -4,7 +4,7 @@ const { BN, expectRevert, expectEvent, time } = require('@openzeppelin/test-help
 const { expect } = require('chai');
 
 const MockMarket = contract.fromArtifact('MockMarket');
-const Dollar = contract.fromArtifact('Dollar');
+const Gold = contract.fromArtifact('Gold');
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const MAX_UINT256 = new BN(2).pow(new BN(256)).subn(1);
@@ -14,12 +14,12 @@ describe('Market', function () {
 
   beforeEach(async function () {
     this.market = await MockMarket.new(poolAddress, {from: ownerAddress, gas: 8000000});
-    this.dollar = await Dollar.at(await this.market.dollar());
+    this.gold = await Gold.at(await this.market.gold());
 
     await this.market.incrementEpochE();
     await this.market.stepE();
     await this.market.mintToE(userAddress, 1000000);
-    await this.dollar.approve(this.market.address, 1000000, {from: userAddress});
+    await this.gold.approve(this.market.address, 1000000, {from: userAddress});
   });
 
   describe('purchaseCoupons', function () {
@@ -57,17 +57,17 @@ describe('Market', function () {
       });
 
       it('updates user balances', async function () {
-        expect(await this.dollar.balanceOf(userAddress)).to.be.bignumber.equal(new BN(900000));
+        expect(await this.gold.balanceOf(userAddress)).to.be.bignumber.equal(new BN(900000));
         expect(await this.market.balanceOfCoupons(userAddress, 1)).to.be.bignumber.equal(new BN(103703));
       });
 
       it('shows correct preimum', async function () {
-        expect(await this.dollar.balanceOf(userAddress)).to.be.bignumber.equal(new BN(900000));
+        expect(await this.gold.balanceOf(userAddress)).to.be.bignumber.equal(new BN(900000));
         expect(await this.market.balanceOfCoupons(userAddress, 1)).to.be.bignumber.equal(new BN(103703));
       });
 
       it('updates dao balances', async function () {
-        expect(await this.dollar.balanceOf(this.market.address)).to.be.bignumber.equal(new BN(0));
+        expect(await this.gold.balanceOf(this.market.address)).to.be.bignumber.equal(new BN(0));
         expect(await this.market.totalCoupons()).to.be.bignumber.equal(new BN(103703));
         expect(await this.market.totalDebt()).to.be.bignumber.equal(new BN(0));
         expect(await this.market.totalRedeemable()).to.be.bignumber.equal(new BN(0));
@@ -79,7 +79,7 @@ describe('Market', function () {
         });
 
         expect(event.args.epoch).to.be.bignumber.equal(new BN(1));
-        expect(event.args.dollarAmount).to.be.bignumber.equal(new BN(100000));
+        expect(event.args.goldAmount).to.be.bignumber.equal(new BN(100000));
         expect(event.args.couponAmount).to.be.bignumber.equal(new BN(103703));
       });
     });
@@ -93,12 +93,12 @@ describe('Market', function () {
       });
 
       it('updates user balances', async function () {
-        expect(await this.dollar.balanceOf(userAddress)).to.be.bignumber.equal(new BN(900000));
+        expect(await this.gold.balanceOf(userAddress)).to.be.bignumber.equal(new BN(900000));
         expect(await this.market.balanceOfCoupons(userAddress, 1)).to.be.bignumber.equal(new BN(103805));
       });
 
       it('updates dao balances', async function () {
-        expect(await this.dollar.balanceOf(this.market.address)).to.be.bignumber.equal(new BN(0));
+        expect(await this.gold.balanceOf(this.market.address)).to.be.bignumber.equal(new BN(0));
         expect(await this.market.totalCoupons()).to.be.bignumber.equal(new BN(103805));
         expect(await this.market.totalDebt()).to.be.bignumber.equal(new BN(0));
         expect(await this.market.totalRedeemable()).to.be.bignumber.equal(new BN(0));
@@ -110,7 +110,7 @@ describe('Market', function () {
         });
 
         expect(event.args.epoch).to.be.bignumber.equal(new BN(1));
-        expect(event.args.dollarAmount).to.be.bignumber.equal(new BN(50000));
+        expect(event.args.goldAmount).to.be.bignumber.equal(new BN(50000));
         expect(event.args.couponAmount).to.be.bignumber.equal(new BN(50925));
       });
     });
@@ -158,12 +158,12 @@ describe('Market', function () {
         });
 
         it('updates user balances', async function () {
-          expect(await this.dollar.balanceOf(userAddress)).to.be.bignumber.equal(new BN(1000000));
+          expect(await this.gold.balanceOf(userAddress)).to.be.bignumber.equal(new BN(1000000));
           expect(await this.market.balanceOfCoupons(userAddress, 1)).to.be.bignumber.equal(new BN(3703));
         });
 
         it('updates dao balances', async function () {
-          expect(await this.dollar.balanceOf(this.market.address)).to.be.bignumber.equal(new BN(0));
+          expect(await this.gold.balanceOf(this.market.address)).to.be.bignumber.equal(new BN(0));
           expect(await this.market.totalCoupons()).to.be.bignumber.equal(new BN(3703));
           expect(await this.market.totalDebt()).to.be.bignumber.equal(new BN(0));
           expect(await this.market.totalRedeemable()).to.be.bignumber.equal(new BN(0));
@@ -187,12 +187,12 @@ describe('Market', function () {
         });
 
         it('updates user balances', async function () {
-          expect(await this.dollar.balanceOf(userAddress)).to.be.bignumber.equal(new BN(980000));
+          expect(await this.gold.balanceOf(userAddress)).to.be.bignumber.equal(new BN(980000));
           expect(await this.market.balanceOfCoupons(userAddress, 1)).to.be.bignumber.equal(new BN(23703));
         });
 
         it('updates dao balances', async function () {
-          expect(await this.dollar.balanceOf(this.market.address)).to.be.bignumber.equal(new BN(20000));
+          expect(await this.gold.balanceOf(this.market.address)).to.be.bignumber.equal(new BN(20000));
           expect(await this.market.totalCoupons()).to.be.bignumber.equal(new BN(23703));
           expect(await this.market.totalDebt()).to.be.bignumber.equal(new BN(0));
           expect(await this.market.totalRedeemable()).to.be.bignumber.equal(new BN(20000));
@@ -213,7 +213,7 @@ describe('Market', function () {
       this.timeout(30000);
 
       beforeEach(async function () {
-        for (let i = 0; i < 90; i++) {
+        for (let i = 0; i < 120; i++) {
           await this.market.incrementEpochE();
         }
         await this.market.stepE();
@@ -373,9 +373,9 @@ describe('Market', function () {
 
     describe('on call without expiration', function () {
       it('initializes coupon expiry', async function () {
-        expect(await this.market.couponsExpiration(2)).to.be.bignumber.equal(new BN(92));
-        expect(await this.market.expiringCoupons(92)).to.be.bignumber.equal(new BN(1));
-        expect(await this.market.expiringCouponsAtIndex(92, 0)).to.be.bignumber.equal(new BN(2));
+        expect(await this.market.couponsExpiration(2)).to.be.bignumber.equal(new BN(122));
+        expect(await this.market.expiringCoupons(122)).to.be.bignumber.equal(new BN(1));
+        expect(await this.market.expiringCouponsAtIndex(122, 0)).to.be.bignumber.equal(new BN(2));
       });
     });
 
@@ -389,7 +389,7 @@ describe('Market', function () {
         await this.market.incrementEpochE();
         await this.market.stepE();
 
-        for (let i = 0; i < 89; i++) {
+        for (let i = 0; i < 119; i++) {
           await this.market.incrementEpochE();
         }
         this.result = await this.market.stepE();
@@ -419,7 +419,7 @@ describe('Market', function () {
         await this.market.incrementEpochE();
         this.result = await this.market.stepE();
 
-        for (let i = 0; i < 89; i++) {
+        for (let i = 0; i < 119; i++) {
           await this.market.incrementEpochE();
         }
         this.result = await this.market.stepE();
@@ -456,7 +456,7 @@ describe('Market', function () {
           await this.market.incrementEpochE();
           this.result = await this.market.stepE();
 
-          for (let i = 0; i < 89; i++) {
+          for (let i = 0; i < 119; i++) {
             await this.market.incrementEpochE();
           }
           this.result = await this.market.stepE();
@@ -489,7 +489,7 @@ describe('Market', function () {
 
           this.result = await this.market.stepE();
 
-          for (let i = 0; i < 89; i++) {
+          for (let i = 0; i < 119; i++) {
             await this.market.incrementEpochE();
           }
           this.result = await this.market.stepE();
@@ -521,7 +521,7 @@ describe('Market', function () {
 
           this.result = await this.market.stepE();
 
-          for (let i = 0; i < 89; i++) {
+          for (let i = 0; i < 119; i++) {
             await this.market.incrementEpochE();
           }
           this.result = await this.market.stepE();
@@ -554,7 +554,7 @@ describe('Market', function () {
 
           this.result = await this.market.stepE();
 
-          for (let i = 0; i < 89; i++) {
+          for (let i = 0; i < 119; i++) {
             await this.market.incrementEpochE();
           }
           this.result = await this.market.stepE();

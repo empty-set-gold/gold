@@ -17,10 +17,12 @@
  * phrase from a file you've .gitignored so it doesn't accidentally become public.
  *
  */
+
+require('dotenv').config();
 const PrivateKeyProvider = require('truffle-privatekey-provider');
-const privateKey = process.env.ESD_PRIVATE_KEY;
-const infuraId = process.env.ESD_INFURA_ID;
-const etherscanKey = process.env.ESD_ETHERSCAN_KEY;
+const privateKey = process.env.ESG_PRIVATE_KEY;
+const infuraId = process.env.ESG_INFURA_ID;
+const etherscanKey = process.env.ESG_ETHERSCAN_KEY;
 
 module.exports = {
   /**
@@ -42,8 +44,9 @@ module.exports = {
     //
     development: {
       host: "127.0.0.1",     // Localhost (default: none)
-      port: 7545,            // Standard Ethereum port (default: none)
+      port: 8545,            // Standard Ethereum port (default: none)
       network_id: "*",       // Any network (default: none)
+      skipDryRun: true,
       gas: 8000000,
     },
 
@@ -86,7 +89,8 @@ module.exports = {
 
   // Set default mocha options here, use special reporters etc.
   mocha: {
-    // timeout: 100000
+    enableTimeouts: false,
+    before_timeout: 120000
   },
 
   // Configure your compilers

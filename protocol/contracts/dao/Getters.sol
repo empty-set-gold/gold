@@ -1,18 +1,3 @@
-/*
-    Copyright 2020 Empty Set Squad <emptysetsquad@protonmail.com>
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-*/
 
 pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
@@ -32,11 +17,11 @@ contract Getters is State {
      */
 
     function name() public view returns (string memory) {
-        return "Empty Set Dollar Stake";
+        return "Empty Set Gold Stake";
     }
 
     function symbol() public view returns (string memory) {
-        return "ESDS";
+        return "ESGS";
     }
 
     function decimals() public view returns (uint8) {
@@ -59,8 +44,8 @@ contract Getters is State {
      * Global
      */
 
-    function dollar() public view returns (IDollar) {
-        return _state.provider.dollar;
+    function gold() public view returns (IGold) {
+        return _state.provider.gold;
     }
 
     function oracle() public view returns (IOracle) {
@@ -92,7 +77,7 @@ contract Getters is State {
     }
 
     function totalNet() public view returns (uint256) {
-        return dollar().totalSupply().sub(totalDebt());
+        return gold().totalSupply().sub(totalDebt());
     }
 
     /**
@@ -147,20 +132,10 @@ contract Getters is State {
     }
 
     function epochTime() public view returns (uint256) {
-        Constants.EpochStrategy memory current = Constants.getCurrentEpochStrategy();
-        Constants.EpochStrategy memory previous = Constants.getPreviousEpochStrategy();
-
-        return blockTimestamp() < current.start ?
-            epochTimeWithStrategy(previous) :
-            epochTimeWithStrategy(current);
+        Constants.EpochStrategy memory strategy = Constants.getCurrentEpochStrategy();
+        return blockTimestamp().sub(strategy.start).div(strategy.period).add(strategy.offset);
     }
 
-    function epochTimeWithStrategy(Constants.EpochStrategy memory strategy) private view returns (uint256) {
-        return blockTimestamp()
-            .sub(strategy.start)
-            .div(strategy.period)
-            .add(strategy.offset);
-    }
 
     // Overridable for testing
     function blockTimestamp() internal view returns (uint256) {

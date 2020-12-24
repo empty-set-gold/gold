@@ -5,9 +5,9 @@ const { BN, expectEvent, expectRevert, time } = require('@openzeppelin/test-help
 const { expect } = require('chai');
 
 const MockBonding = contract.fromArtifact('MockBonding');
-const Dollar = contract.fromArtifact('Dollar');
+const Gold = contract.fromArtifact('Gold');
 
-const INITIAL_STAKE_MULTIPLE = new BN(10).pow(new BN(6)); // 100 ESD -> 100M ESDS
+const INITIAL_STAKE_MULTIPLE = new BN(10).pow(new BN(6)); // 100 ESG -> 100M ESGS
 
 const FROZEN = new BN(0);
 const FLUID = new BN(1);
@@ -18,7 +18,7 @@ describe('Bonding', function () {
 
   beforeEach(async function () {
     this.bonding = await MockBonding.new({from: ownerAddress, gas: 8000000});
-    this.dollar = await Dollar.at(await this.bonding.dollar());
+    this.gold = await Gold.at(await this.bonding.gold());
 
     await this.bonding.setEpochParamsE(await time.latest(), 86400);
     await time.increase(86400);
@@ -27,7 +27,7 @@ describe('Bonding', function () {
 
   describe('frozen', function () {
     describe('starts as frozen', function () {
-      it('mints new Dollar tokens', async function () {
+      it('mints new Gold tokens', async function () {
         expect(await this.bonding.statusOf(userAddress)).to.be.bignumber.equal(FROZEN);
       });
     });
@@ -35,7 +35,7 @@ describe('Bonding', function () {
     describe('when deposit', function () {
       beforeEach(async function () {
         await this.bonding.mintToE(userAddress, 1000);
-        await this.dollar.approve(this.bonding.address, 1000, {from: userAddress});
+        await this.gold.approve(this.bonding.address, 1000, {from: userAddress});
 
         this.result = await this.bonding.deposit(1000, {from: userAddress});
         this.txHash = this.result.tx;
@@ -46,14 +46,14 @@ describe('Bonding', function () {
       });
 
       it('updates users balances', async function () {
-        expect(await this.dollar.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
+        expect(await this.gold.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
         expect(await this.bonding.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
         expect(await this.bonding.balanceOfStaged(userAddress)).to.be.bignumber.equal(new BN(1000));
         expect(await this.bonding.balanceOfBonded(userAddress)).to.be.bignumber.equal(new BN(0));
       });
 
       it('updates dao balances', async function () {
-        expect(await this.dollar.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(1000));
+        expect(await this.gold.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(1000));
         expect(await this.bonding.totalSupply()).to.be.bignumber.equal(new BN(0));
         expect(await this.bonding.totalBonded()).to.be.bignumber.equal(new BN(0));
         expect(await this.bonding.totalStaged()).to.be.bignumber.equal(new BN(1000));
@@ -71,7 +71,7 @@ describe('Bonding', function () {
     describe('when withdraw', function () {
       beforeEach(async function () {
         await this.bonding.mintToE(userAddress, 1000);
-        await this.dollar.approve(this.bonding.address, 1000, {from: userAddress});
+        await this.gold.approve(this.bonding.address, 1000, {from: userAddress});
         await this.bonding.deposit(1000, {from: userAddress});
 
         this.result = await this.bonding.withdraw(1000, {from: userAddress});
@@ -83,14 +83,14 @@ describe('Bonding', function () {
       });
 
       it('updates users balances', async function () {
-        expect(await this.dollar.balanceOf(userAddress)).to.be.bignumber.equal(new BN(1000));
+        expect(await this.gold.balanceOf(userAddress)).to.be.bignumber.equal(new BN(1000));
         expect(await this.bonding.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
         expect(await this.bonding.balanceOfStaged(userAddress)).to.be.bignumber.equal(new BN(0));
         expect(await this.bonding.balanceOfBonded(userAddress)).to.be.bignumber.equal(new BN(0));
       });
 
       it('updates dao balances', async function () {
-        expect(await this.dollar.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(0));
+        expect(await this.gold.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(0));
         expect(await this.bonding.totalSupply()).to.be.bignumber.equal(new BN(0));
         expect(await this.bonding.totalBonded()).to.be.bignumber.equal(new BN(0));
         expect(await this.bonding.totalStaged()).to.be.bignumber.equal(new BN(0));
@@ -108,11 +108,11 @@ describe('Bonding', function () {
     describe('when withdraw too much', function () {
       beforeEach(async function () {
         await this.bonding.mintToE(userAddress, 1000);
-        await this.dollar.approve(this.bonding.address, 1000, {from: userAddress});
+        await this.gold.approve(this.bonding.address, 1000, {from: userAddress});
         await this.bonding.deposit(1000, {from: userAddress});
 
         await this.bonding.mintToE(userAddress1, 10000);
-        await this.dollar.approve(this.bonding.address, 10000, {from: userAddress1});
+        await this.gold.approve(this.bonding.address, 10000, {from: userAddress1});
         await this.bonding.deposit(10000, {from: userAddress1});
       });
 
@@ -125,7 +125,7 @@ describe('Bonding', function () {
       describe('simple', function () {
         beforeEach(async function () {
           await this.bonding.mintToE(userAddress, 1000);
-          await this.dollar.approve(this.bonding.address, 1000, {from: userAddress});
+          await this.gold.approve(this.bonding.address, 1000, {from: userAddress});
           await this.bonding.deposit(1000, {from: userAddress});
 
           this.result = await this.bonding.bond(1000, {from: userAddress});
@@ -137,14 +137,14 @@ describe('Bonding', function () {
         });
 
         it('updates users balances', async function () {
-          expect(await this.dollar.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
+          expect(await this.gold.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
           expect(await this.bonding.balanceOf(userAddress)).to.be.bignumber.equal(new BN(1000).mul(INITIAL_STAKE_MULTIPLE));
           expect(await this.bonding.balanceOfStaged(userAddress)).to.be.bignumber.equal(new BN(0));
           expect(await this.bonding.balanceOfBonded(userAddress)).to.be.bignumber.equal(new BN(1000));
         });
 
         it('updates dao balances', async function () {
-          expect(await this.dollar.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(1000));
+          expect(await this.gold.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(1000));
           expect(await this.bonding.totalSupply()).to.be.bignumber.equal(new BN(1000).mul(INITIAL_STAKE_MULTIPLE));
           expect(await this.bonding.totalBonded()).to.be.bignumber.equal(new BN(1000));
           expect(await this.bonding.totalStaged()).to.be.bignumber.equal(new BN(0));
@@ -173,7 +173,7 @@ describe('Bonding', function () {
       describe('partial', function () {
         beforeEach(async function () {
           await this.bonding.mintToE(userAddress, 1000);
-          await this.dollar.approve(this.bonding.address, 1000, {from: userAddress});
+          await this.gold.approve(this.bonding.address, 1000, {from: userAddress});
           await this.bonding.deposit(800, {from: userAddress});
 
           this.result = await this.bonding.bond(500, {from: userAddress});
@@ -185,14 +185,14 @@ describe('Bonding', function () {
         });
 
         it('updates users balances', async function () {
-          expect(await this.dollar.balanceOf(userAddress)).to.be.bignumber.equal(new BN(200));
+          expect(await this.gold.balanceOf(userAddress)).to.be.bignumber.equal(new BN(200));
           expect(await this.bonding.balanceOf(userAddress)).to.be.bignumber.equal(new BN(500).mul(INITIAL_STAKE_MULTIPLE));
           expect(await this.bonding.balanceOfStaged(userAddress)).to.be.bignumber.equal(new BN(300));
           expect(await this.bonding.balanceOfBonded(userAddress)).to.be.bignumber.equal(new BN(500));
         });
 
         it('updates dao balances', async function () {
-          expect(await this.dollar.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(800));
+          expect(await this.gold.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(800));
           expect(await this.bonding.totalSupply()).to.be.bignumber.equal(new BN(500).mul(INITIAL_STAKE_MULTIPLE));
           expect(await this.bonding.totalBonded()).to.be.bignumber.equal(new BN(500));
           expect(await this.bonding.totalStaged()).to.be.bignumber.equal(new BN(300));
@@ -221,11 +221,11 @@ describe('Bonding', function () {
       describe('multiple', function () {
         beforeEach(async function () {
           await this.bonding.mintToE(userAddress1, 1000);
-          await this.dollar.approve(this.bonding.address, 1000, {from: userAddress1});
+          await this.gold.approve(this.bonding.address, 1000, {from: userAddress1});
           await this.bonding.deposit(1000, {from: userAddress1});
 
           await this.bonding.mintToE(userAddress2, 1000);
-          await this.dollar.approve(this.bonding.address, 1000, {from: userAddress2});
+          await this.gold.approve(this.bonding.address, 1000, {from: userAddress2});
           await this.bonding.deposit(1000, {from: userAddress2});
 
           await this.bonding.bond(600, {from: userAddress1});
@@ -236,7 +236,7 @@ describe('Bonding', function () {
           await this.bonding.incrementTotalBondedE(1000);
 
           await this.bonding.mintToE(userAddress, 1000);
-          await this.dollar.approve(this.bonding.address, 800, {from: userAddress});
+          await this.gold.approve(this.bonding.address, 800, {from: userAddress});
           await this.bonding.deposit(800, {from: userAddress});
 
           this.result = await this.bonding.bond(500, {from: userAddress});
@@ -248,14 +248,14 @@ describe('Bonding', function () {
         });
 
         it('updates users balances', async function () {
-          expect(await this.dollar.balanceOf(userAddress)).to.be.bignumber.equal(new BN(200));
+          expect(await this.gold.balanceOf(userAddress)).to.be.bignumber.equal(new BN(200));
           expect(await this.bonding.balanceOf(userAddress)).to.be.bignumber.equal(new BN(250).mul(INITIAL_STAKE_MULTIPLE));
           expect(await this.bonding.balanceOfStaged(userAddress)).to.be.bignumber.equal(new BN(300));
           expect(await this.bonding.balanceOfBonded(userAddress)).to.be.bignumber.equal(new BN(500));
         });
 
         it('updates dao balances', async function () {
-          expect(await this.dollar.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(3800));
+          expect(await this.gold.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(3800));
           expect(await this.bonding.totalSupply()).to.be.bignumber.equal(new BN(1250).mul(INITIAL_STAKE_MULTIPLE));
           expect(await this.bonding.totalBonded()).to.be.bignumber.equal(new BN(2500));
           expect(await this.bonding.totalStaged()).to.be.bignumber.equal(new BN(1300));
@@ -285,7 +285,7 @@ describe('Bonding', function () {
     describe('when unbond', function () {
       beforeEach(async function () {
         await this.bonding.mintToE(userAddress, 1000);
-        await this.dollar.approve(this.bonding.address, 1000, {from: userAddress});
+        await this.gold.approve(this.bonding.address, 1000, {from: userAddress});
         await this.bonding.deposit(1000, {from: userAddress});
 
         await this.bonding.bond(1000, {from: userAddress});
@@ -303,14 +303,14 @@ describe('Bonding', function () {
         });
 
         it('updates users balances', async function () {
-          expect(await this.dollar.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
+          expect(await this.gold.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
           expect(await this.bonding.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
           expect(await this.bonding.balanceOfStaged(userAddress)).to.be.bignumber.equal(new BN(1000));
           expect(await this.bonding.balanceOfBonded(userAddress)).to.be.bignumber.equal(new BN(0));
         });
 
         it('updates dao balances', async function () {
-          expect(await this.dollar.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(1000));
+          expect(await this.gold.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(1000));
           expect(await this.bonding.totalSupply()).to.be.bignumber.equal(new BN(0));
           expect(await this.bonding.totalBonded()).to.be.bignumber.equal(new BN(0));
           expect(await this.bonding.totalStaged()).to.be.bignumber.equal(new BN(1000));
@@ -347,14 +347,14 @@ describe('Bonding', function () {
         });
 
         it('updates users balances', async function () {
-          expect(await this.dollar.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
+          expect(await this.gold.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
           expect(await this.bonding.balanceOf(userAddress)).to.be.bignumber.equal(new BN(200).mul(INITIAL_STAKE_MULTIPLE));
           expect(await this.bonding.balanceOfStaged(userAddress)).to.be.bignumber.equal(new BN(800));
           expect(await this.bonding.balanceOfBonded(userAddress)).to.be.bignumber.equal(new BN(200));
         });
 
         it('updates dao balances', async function () {
-          expect(await this.dollar.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(1000));
+          expect(await this.gold.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(1000));
           expect(await this.bonding.totalSupply()).to.be.bignumber.equal(new BN(200).mul(INITIAL_STAKE_MULTIPLE));
           expect(await this.bonding.totalBonded()).to.be.bignumber.equal(new BN(200));
           expect(await this.bonding.totalStaged()).to.be.bignumber.equal(new BN(800));
@@ -383,11 +383,11 @@ describe('Bonding', function () {
       describe('multiple', function () {
         beforeEach(async function () {
           await this.bonding.mintToE(userAddress1, 1000);
-          await this.dollar.approve(this.bonding.address, 1000, {from: userAddress1});
+          await this.gold.approve(this.bonding.address, 1000, {from: userAddress1});
           await this.bonding.deposit(1000, {from: userAddress1});
 
           await this.bonding.mintToE(userAddress2, 1000);
-          await this.dollar.approve(this.bonding.address, 1000, {from: userAddress2});
+          await this.gold.approve(this.bonding.address, 1000, {from: userAddress2});
           await this.bonding.deposit(1000, {from: userAddress2});
 
           await this.bonding.bond(600, {from: userAddress1});
@@ -406,14 +406,14 @@ describe('Bonding', function () {
         });
 
         it('updates users balances', async function () {
-          expect(await this.dollar.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
+          expect(await this.gold.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
           expect(await this.bonding.balanceOf(userAddress)).to.be.bignumber.equal(new BN(200).mul(INITIAL_STAKE_MULTIPLE));
           expect(await this.bonding.balanceOfStaged(userAddress)).to.be.bignumber.equal(new BN(1200));
           expect(await this.bonding.balanceOfBonded(userAddress)).to.be.bignumber.equal(new BN(300));
         });
 
         it('updates dao balances', async function () {
-          expect(await this.dollar.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(4000));
+          expect(await this.gold.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(4000));
           expect(await this.bonding.totalSupply()).to.be.bignumber.equal(new BN(1200).mul(INITIAL_STAKE_MULTIPLE));
           expect(await this.bonding.totalBonded()).to.be.bignumber.equal(new BN(1800));
           expect(await this.bonding.totalStaged()).to.be.bignumber.equal(new BN(2200));
@@ -443,7 +443,7 @@ describe('Bonding', function () {
     describe('when unbondUnderlying', function () {
       beforeEach(async function () {
         await this.bonding.mintToE(userAddress, 1000);
-        await this.dollar.approve(this.bonding.address, 1000, {from: userAddress});
+        await this.gold.approve(this.bonding.address, 1000, {from: userAddress});
         await this.bonding.deposit(1000, {from: userAddress});
 
         await this.bonding.bond(1000, {from: userAddress});
@@ -461,14 +461,14 @@ describe('Bonding', function () {
         });
 
         it('updates users balances', async function () {
-          expect(await this.dollar.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
+          expect(await this.gold.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
           expect(await this.bonding.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
           expect(await this.bonding.balanceOfStaged(userAddress)).to.be.bignumber.equal(new BN(1000));
           expect(await this.bonding.balanceOfBonded(userAddress)).to.be.bignumber.equal(new BN(0));
         });
 
         it('updates dao balances', async function () {
-          expect(await this.dollar.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(1000));
+          expect(await this.gold.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(1000));
           expect(await this.bonding.totalSupply()).to.be.bignumber.equal(new BN(0));
           expect(await this.bonding.totalBonded()).to.be.bignumber.equal(new BN(0));
           expect(await this.bonding.totalStaged()).to.be.bignumber.equal(new BN(1000));
@@ -505,14 +505,14 @@ describe('Bonding', function () {
         });
 
         it('updates users balances', async function () {
-          expect(await this.dollar.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
+          expect(await this.gold.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
           expect(await this.bonding.balanceOf(userAddress)).to.be.bignumber.equal(new BN(200).mul(INITIAL_STAKE_MULTIPLE));
           expect(await this.bonding.balanceOfStaged(userAddress)).to.be.bignumber.equal(new BN(800));
           expect(await this.bonding.balanceOfBonded(userAddress)).to.be.bignumber.equal(new BN(200));
         });
 
         it('updates dao balances', async function () {
-          expect(await this.dollar.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(1000));
+          expect(await this.gold.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(1000));
           expect(await this.bonding.totalSupply()).to.be.bignumber.equal(new BN(200).mul(INITIAL_STAKE_MULTIPLE));
           expect(await this.bonding.totalBonded()).to.be.bignumber.equal(new BN(200));
           expect(await this.bonding.totalStaged()).to.be.bignumber.equal(new BN(800));
@@ -541,11 +541,11 @@ describe('Bonding', function () {
       describe('multiple', function () {
         beforeEach(async function () {
           await this.bonding.mintToE(userAddress1, 1000);
-          await this.dollar.approve(this.bonding.address, 1000, {from: userAddress1});
+          await this.gold.approve(this.bonding.address, 1000, {from: userAddress1});
           await this.bonding.deposit(1000, {from: userAddress1});
 
           await this.bonding.mintToE(userAddress2, 1000);
-          await this.dollar.approve(this.bonding.address, 1000, {from: userAddress2});
+          await this.gold.approve(this.bonding.address, 1000, {from: userAddress2});
           await this.bonding.deposit(1000, {from: userAddress2});
 
           await this.bonding.bond(600, {from: userAddress1});
@@ -564,14 +564,14 @@ describe('Bonding', function () {
         });
 
         it('updates users balances', async function () {
-          expect(await this.dollar.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
+          expect(await this.gold.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
           expect(await this.bonding.balanceOf(userAddress)).to.be.bignumber.equal(new BN(466666667));
           expect(await this.bonding.balanceOfStaged(userAddress)).to.be.bignumber.equal(new BN(800));
           expect(await this.bonding.balanceOfBonded(userAddress)).to.be.bignumber.equal(new BN(700));
         });
 
         it('updates dao balances', async function () {
-          expect(await this.dollar.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(4000));
+          expect(await this.gold.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(4000));
           expect(await this.bonding.totalSupply()).to.be.bignumber.equal(new BN(1466666667));
           expect(await this.bonding.totalBonded()).to.be.bignumber.equal(new BN(2200));
           expect(await this.bonding.totalStaged()).to.be.bignumber.equal(new BN(1800));
@@ -602,7 +602,7 @@ describe('Bonding', function () {
   describe('fluid', function () {
     beforeEach(async function () {
       await this.bonding.mintToE(userAddress, 1000);
-      await this.dollar.approve(this.bonding.address, 1000, {from: userAddress});
+      await this.gold.approve(this.bonding.address, 1000, {from: userAddress});
       await this.bonding.deposit(1000, {from: userAddress});
 
       await this.bonding.bond(500, {from: userAddress});
@@ -635,14 +635,14 @@ describe('Bonding', function () {
       });
 
       it('updates users balances', async function () {
-        expect(await this.dollar.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
+        expect(await this.gold.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
         expect(await this.bonding.balanceOf(userAddress)).to.be.bignumber.equal(new BN(1000).mul(INITIAL_STAKE_MULTIPLE));
         expect(await this.bonding.balanceOfStaged(userAddress)).to.be.bignumber.equal(new BN(0));
         expect(await this.bonding.balanceOfBonded(userAddress)).to.be.bignumber.equal(new BN(1000));
       });
 
       it('updates dao balances', async function () {
-        expect(await this.dollar.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(1000));
+        expect(await this.gold.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(1000));
         expect(await this.bonding.totalSupply()).to.be.bignumber.equal(new BN(1000).mul(INITIAL_STAKE_MULTIPLE));
         expect(await this.bonding.totalBonded()).to.be.bignumber.equal(new BN(1000));
         expect(await this.bonding.totalStaged()).to.be.bignumber.equal(new BN(0));
@@ -679,14 +679,14 @@ describe('Bonding', function () {
       });
 
       it('updates users balances', async function () {
-        expect(await this.dollar.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
+        expect(await this.gold.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
         expect(await this.bonding.balanceOf(userAddress)).to.be.bignumber.equal(new BN(0));
         expect(await this.bonding.balanceOfStaged(userAddress)).to.be.bignumber.equal(new BN(1000));
         expect(await this.bonding.balanceOfBonded(userAddress)).to.be.bignumber.equal(new BN(0));
       });
 
       it('updates dao balances', async function () {
-        expect(await this.dollar.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(1000));
+        expect(await this.gold.balanceOf(this.bonding.address)).to.be.bignumber.equal(new BN(1000));
         expect(await this.bonding.totalSupply()).to.be.bignumber.equal(new BN(0));
         expect(await this.bonding.totalBonded()).to.be.bignumber.equal(new BN(0));
         expect(await this.bonding.totalStaged()).to.be.bignumber.equal(new BN(1000));
@@ -716,7 +716,7 @@ describe('Bonding', function () {
   describe('locked', function () {
     beforeEach(async function () {
       await this.bonding.mintToE(userAddress, 1000);
-      await this.dollar.approve(this.bonding.address, 1000, {from: userAddress});
+      await this.gold.approve(this.bonding.address, 1000, {from: userAddress});
 
       await this.bonding.createCandidateE(ownerAddress, 7);
       await this.bonding.placeLockE(userAddress, ownerAddress);
@@ -764,7 +764,7 @@ describe('Bonding', function () {
     beforeEach(async function () {
       /* Deposit and Bond User */
       await this.bonding.mintToE(userAddress, 1000);
-      await this.dollar.approve(this.bonding.address, 1000, {from: userAddress});
+      await this.gold.approve(this.bonding.address, 1000, {from: userAddress});
       await this.bonding.deposit(1000, {from: userAddress});
       await this.bonding.bond(1000, {from: userAddress});
 
@@ -777,11 +777,11 @@ describe('Bonding', function () {
 
       /* Deposit and Bond User 1+2 */
       await this.bonding.mintToE(userAddress1, 1000);
-      await this.dollar.approve(this.bonding.address, 1000, {from: userAddress1});
+      await this.gold.approve(this.bonding.address, 1000, {from: userAddress1});
       await this.bonding.deposit(1000, {from: userAddress1});
 
       await this.bonding.mintToE(userAddress2, 1000);
-      await this.dollar.approve(this.bonding.address, 1000, {from: userAddress2});
+      await this.gold.approve(this.bonding.address, 1000, {from: userAddress2});
       await this.bonding.deposit(1000, {from: userAddress2});
 
       await this.bonding.bond(1000, {from: userAddress1});
@@ -794,7 +794,7 @@ describe('Bonding', function () {
       await this.bonding.unbondUnderlying(2000, {from: userAddress});
 
       await time.increase(86400);
-      for (var i = 0; i < 14; i++) {
+      for (var i = 0; i < 19; i++) {
         await this.bonding.stepE({from: userAddress});
       }
     });
@@ -805,7 +805,7 @@ describe('Bonding', function () {
       });
 
       it('is correct epoch', async function () {
-        expect(await this.bonding.epoch()).to.be.bignumber.equal(new BN(17));
+        expect(await this.bonding.epoch()).to.be.bignumber.equal(new BN(22));
       });
     });
 
@@ -819,7 +819,7 @@ describe('Bonding', function () {
       });
 
       it('is correct epoch', async function () {
-        expect(await this.bonding.epoch()).to.be.bignumber.equal(new BN(18));
+        expect(await this.bonding.epoch()).to.be.bignumber.equal(new BN(23));
       });
 
       it('has correct snapshots', async function () {

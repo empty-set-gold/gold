@@ -5,11 +5,11 @@ const { expect } = require('chai');
 
 const MockRegulator = contract.fromArtifact('MockRegulator');
 const MockSettableOracle = contract.fromArtifact('MockSettableOracle');
-const Dollar = contract.fromArtifact('Dollar');
+const Gold = contract.fromArtifact('Gold');
 
 const POOL_REWARD_PERCENT = 20;
 const TREASURY_REWARD_BIPS = 250;
-const TREASURY_ADDRESS = '0x460661bd4A5364A3ABCc9cfc4a8cE7038d05Ea22';
+const TREASURY_ADDRESS = '0x412D82fd4062AEEd750d1654c64985CDbA0F11b7';
 
 function lessPoolAndTreasuryIncentive(baseAmount, newAmount) {
   return new BN(baseAmount + newAmount - poolIncentive(newAmount) - treasuryIncentive(newAmount));
@@ -29,7 +29,7 @@ describe('Regulator', function () {
   beforeEach(async function () {
     this.oracle = await MockSettableOracle.new({from: ownerAddress, gas: 8000000});
     this.regulator = await MockRegulator.new(this.oracle.address, poolAddress, {from: ownerAddress, gas: 8000000});
-    this.dollar = await Dollar.at(await this.regulator.dollar());
+    this.gold = await Gold.at(await this.regulator.gold());
   });
 
   describe('after bootstrapped', function () {
@@ -52,18 +52,18 @@ describe('Regulator', function () {
 
         describe('on step', function () {
           beforeEach(async function () {
-            await this.oracle.set(115, 100, true);
-            this.expectedReward = 30000;
+            await this.oracle.set(125, 100, true);
+            this.expectedReward = 100000;
 
             this.result = await this.regulator.stepE();
             this.txHash = this.result.tx;
           });
 
-          it('mints new Dollar tokens', async function () {
-            expect(await this.dollar.totalSupply()).to.be.bignumber.equal(new BN(1000000).add(new BN(this.expectedReward)));
-            expect(await this.dollar.balanceOf(this.regulator.address)).to.be.bignumber.equal(lessPoolAndTreasuryIncentive(1000000, this.expectedReward));
-            expect(await this.dollar.balanceOf(poolAddress)).to.be.bignumber.equal(poolIncentive(this.expectedReward));
-            expect(await this.dollar.balanceOf(TREASURY_ADDRESS)).to.be.bignumber.equal(treasuryIncentive(this.expectedReward));
+          it('mints new Gold tokens', async function () {
+            expect(await this.gold.totalSupply()).to.be.bignumber.equal(new BN(1000000).add(new BN(this.expectedReward)));
+            expect(await this.gold.balanceOf(this.regulator.address)).to.be.bignumber.equal(lessPoolAndTreasuryIncentive(1000000, this.expectedReward));
+            expect(await this.gold.balanceOf(poolAddress)).to.be.bignumber.equal(poolIncentive(this.expectedReward).add(treasuryIncentive(this.expectedReward)));
+            // expect(await this.gold.balanceOf(TREASURY_ADDRESS)).to.be.bignumber.equal(treasuryIncentive(this.expectedReward));
           });
 
           it('updates totals', async function () {
@@ -79,7 +79,7 @@ describe('Regulator', function () {
             const event = await expectEvent.inTransaction(this.txHash, MockRegulator, 'SupplyIncrease', {});
 
             expect(event.args.epoch).to.be.bignumber.equal(new BN(7));
-            expect(event.args.price).to.be.bignumber.equal(new BN(115).mul(new BN(10).pow(new BN(16))));
+            expect(event.args.price).to.be.bignumber.equal(new BN(125).mul(new BN(10).pow(new BN(16))));
             expect(event.args.newRedeemable).to.be.bignumber.equal(new BN(0));
             expect(event.args.lessDebt).to.be.bignumber.equal(new BN(0));
             expect(event.args.newBonded).to.be.bignumber.equal(new BN(this.expectedReward));
@@ -104,12 +104,11 @@ describe('Regulator', function () {
             this.txHash = this.result.tx;
           });
 
-          it('mints new Dollar tokens', async function () {
-            expect(await this.dollar.totalSupply()).to.be.bignumber.equal(new BN(1000000).add(new BN(this.expectedReward)));
-            expect(await this.dollar.balanceOf(this.regulator.address)).to.be.bignumber.equal(lessPoolAndTreasuryIncentive(1000000, this.expectedReward));
-            expect(await this.dollar.balanceOf(poolAddress)).to.be.bignumber.equal(poolIncentive(this.expectedReward));
-            expect(await this.dollar.balanceOf(TREASURY_ADDRESS)).to.be.bignumber.equal(treasuryIncentive(this.expectedReward));
-
+          it('mints new Gold tokens', async function () {
+            expect(await this.gold.totalSupply()).to.be.bignumber.equal(new BN(1000000).add(new BN(this.expectedReward)));
+            expect(await this.gold.balanceOf(this.regulator.address)).to.be.bignumber.equal(lessPoolAndTreasuryIncentive(1000000, this.expectedReward));
+            expect(await this.gold.balanceOf(poolAddress)).to.be.bignumber.equal(poolIncentive(this.expectedReward).add(treasuryIncentive(this.expectedReward)));
+            // expect(await this.gold.balanceOf(TREASURY_ADDRESS)).to.be.bignumber.equal(treasuryIncentive(this.expectedReward));
           });
 
           it('updates totals', async function () {
@@ -159,11 +158,11 @@ describe('Regulator', function () {
             this.txHash = this.result.tx;
           });
 
-          it('mints new Dollar tokens', async function () {
-            expect(await this.dollar.totalSupply()).to.be.bignumber.equal(new BN(1000000).add(new BN(this.expectedReward)));
-            expect(await this.dollar.balanceOf(this.regulator.address)).to.be.bignumber.equal(new BN(1000000).add(new BN(this.expectedRewardCoupons)));
-            expect(await this.dollar.balanceOf(poolAddress)).to.be.bignumber.equal(new BN(this.expectedRewardLP));
-            expect(await this.dollar.balanceOf(TREASURY_ADDRESS)).to.be.bignumber.equal(new BN(this.expectedRewardTreasury));
+          it('mints new Gold tokens', async function () {
+            expect(await this.gold.totalSupply()).to.be.bignumber.equal(new BN(1000000).add(new BN(this.expectedReward)));
+            expect(await this.gold.balanceOf(this.regulator.address)).to.be.bignumber.equal(new BN(1000000).add(new BN(this.expectedRewardCoupons)));
+            expect(await this.gold.balanceOf(poolAddress)).to.be.bignumber.equal(new BN(this.expectedRewardLP).add(new BN(this.expectedRewardTreasury)));
+            // expect(await this.gold.balanceOf(TREASURY_ADDRESS)).to.be.bignumber.equal(new BN(this.expectedRewardTreasury));
           });
 
           it('updates totals', async function () {
@@ -214,11 +213,11 @@ describe('Regulator', function () {
           this.txHash = this.result.tx;
         });
 
-        it('mints new Dollar tokens', async function () {
-          expect(await this.dollar.totalSupply()).to.be.bignumber.equal(new BN(1010000));
-          expect(await this.dollar.balanceOf(this.regulator.address)).to.be.bignumber.equal(new BN(1000000 + this.newRedeemable + this.bondedReward));
-          expect(await this.dollar.balanceOf(poolAddress)).to.be.bignumber.equal(new BN(this.poolReward));
-          expect(await this.dollar.balanceOf(TREASURY_ADDRESS)).to.be.bignumber.equal(new BN(this.treasuryReward));
+        it('mints new Gold tokens', async function () {
+          expect(await this.gold.totalSupply()).to.be.bignumber.equal(new BN(1010000));
+          expect(await this.gold.balanceOf(this.regulator.address)).to.be.bignumber.equal(new BN(1000000 + this.newRedeemable + this.bondedReward));
+          expect(await this.gold.balanceOf(poolAddress)).to.be.bignumber.equal(new BN(this.poolReward).add(new BN(this.treasuryReward)));
+          // expect(await this.gold.balanceOf(TREASURY_ADDRESS)).to.be.bignumber.equal(new BN(this.treasuryReward));
         });
 
         it('updates totals', async function () {
@@ -268,11 +267,11 @@ describe('Regulator', function () {
             this.txHash = this.result.tx;
           });
 
-          it('mints new Dollar tokens', async function () {
-            expect(await this.dollar.totalSupply()).to.be.bignumber.equal(new BN(1000000).add(new BN(this.expectedReward)));
-            expect(await this.dollar.balanceOf(this.regulator.address)).to.be.bignumber.equal(new BN(1000000).add(new BN(this.expectedRewardCoupons)));
-            expect(await this.dollar.balanceOf(poolAddress)).to.be.bignumber.equal(new BN(this.expectedRewardLP));
-            expect(await this.dollar.balanceOf(TREASURY_ADDRESS)).to.be.bignumber.equal(new BN(this.expectedRewardTreasury));
+          it('mints new Gold tokens', async function () {
+            expect(await this.gold.totalSupply()).to.be.bignumber.equal(new BN(1000000).add(new BN(this.expectedReward)));
+            expect(await this.gold.balanceOf(this.regulator.address)).to.be.bignumber.equal(new BN(1000000).add(new BN(this.expectedRewardCoupons)));
+            expect(await this.gold.balanceOf(poolAddress)).to.be.bignumber.equal(new BN(this.expectedRewardLP).add(new BN(this.expectedRewardTreasury)));
+            // expect(await this.gold.balanceOf(TREASURY_ADDRESS)).to.be.bignumber.equal(new BN(this.expectedRewardTreasury));
           });
 
           it('updates totals', async function () {
@@ -311,16 +310,16 @@ describe('Regulator', function () {
         describe('on step', function () {
           beforeEach(async function () {
             await this.oracle.set(85, 100, true);
-            this.expectedDebt = 30000;
+            this.expectedDebt = 100000;
 
             this.result = await this.regulator.stepE();
             this.txHash = this.result.tx;
           });
 
-          it('doesnt mint new Dollar tokens', async function () {
-            expect(await this.dollar.totalSupply()).to.be.bignumber.equal(new BN(1000000));
-            expect(await this.dollar.balanceOf(this.regulator.address)).to.be.bignumber.equal(new BN(1000000));
-            expect(await this.dollar.balanceOf(poolAddress)).to.be.bignumber.equal(new BN(0));
+          it('doesnt mint new Gold tokens', async function () {
+            expect(await this.gold.totalSupply()).to.be.bignumber.equal(new BN(1000000));
+            expect(await this.gold.balanceOf(this.regulator.address)).to.be.bignumber.equal(new BN(1000000));
+            expect(await this.gold.balanceOf(poolAddress)).to.be.bignumber.equal(new BN(0));
           });
 
           it('updates totals', async function () {
@@ -362,10 +361,10 @@ describe('Regulator', function () {
             this.txHash = this.result.tx;
           });
 
-          it('doesnt mint new Dollar tokens', async function () {
-            expect(await this.dollar.totalSupply()).to.be.bignumber.equal(new BN(1000000));
-            expect(await this.dollar.balanceOf(this.regulator.address)).to.be.bignumber.equal(new BN(1000000));
-            expect(await this.dollar.balanceOf(poolAddress)).to.be.bignumber.equal(new BN(0));
+          it('doesnt mint new Gold tokens', async function () {
+            expect(await this.gold.totalSupply()).to.be.bignumber.equal(new BN(1000000));
+            expect(await this.gold.balanceOf(this.regulator.address)).to.be.bignumber.equal(new BN(1000000));
+            expect(await this.gold.balanceOf(poolAddress)).to.be.bignumber.equal(new BN(0));
           });
 
           it('updates totals', async function () {
@@ -408,10 +407,10 @@ describe('Regulator', function () {
             this.txHash = this.result.tx;
           });
 
-          it('doesnt mint new Dollar tokens', async function () {
-            expect(await this.dollar.totalSupply()).to.be.bignumber.equal(new BN(1000000));
-            expect(await this.dollar.balanceOf(this.regulator.address)).to.be.bignumber.equal(new BN(1000000));
-            expect(await this.dollar.balanceOf(poolAddress)).to.be.bignumber.equal(new BN(0));
+          it('doesnt mint new Gold tokens', async function () {
+            expect(await this.gold.totalSupply()).to.be.bignumber.equal(new BN(1000000));
+            expect(await this.gold.balanceOf(this.regulator.address)).to.be.bignumber.equal(new BN(1000000));
+            expect(await this.gold.balanceOf(poolAddress)).to.be.bignumber.equal(new BN(0));
           });
 
           it('updates totals', async function () {
@@ -449,17 +448,17 @@ describe('Regulator', function () {
 
         describe('on step', function () {
           beforeEach(async function () {
-            await this.oracle.set(95, 100, true);
-            this.expectedDebt = 27000; // 3% not 5%
+            await this.oracle.set(85, 100, true);
+            this.expectedDebt = 90000; // 10% not 15%
 
             this.result = await this.regulator.stepE();
             this.txHash = this.result.tx;
           });
 
-          it('doesnt mint new Dollar tokens', async function () {
-            expect(await this.dollar.totalSupply()).to.be.bignumber.equal(new BN(1000000));
-            expect(await this.dollar.balanceOf(this.regulator.address)).to.be.bignumber.equal(new BN(1000000));
-            expect(await this.dollar.balanceOf(poolAddress)).to.be.bignumber.equal(new BN(0));
+          it('doesnt mint new Gold tokens', async function () {
+            expect(await this.gold.totalSupply()).to.be.bignumber.equal(new BN(1000000));
+            expect(await this.gold.balanceOf(this.regulator.address)).to.be.bignumber.equal(new BN(1000000));
+            expect(await this.gold.balanceOf(poolAddress)).to.be.bignumber.equal(new BN(0));
           });
 
           it('updates totals', async function () {
@@ -475,9 +474,8 @@ describe('Regulator', function () {
 
           it('emits SupplyDecrease event', async function () {
             const event = await expectEvent.inTransaction(this.txHash, MockRegulator, 'SupplyDecrease', {});
-
             expect(event.args.epoch).to.be.bignumber.equal(new BN(7));
-            expect(event.args.price).to.be.bignumber.equal(new BN(95).mul(new BN(10).pow(new BN(16))));
+            expect(event.args.price).to.be.bignumber.equal(new BN(85).mul(new BN(10).pow(new BN(16))));
             expect(event.args.newDebt).to.be.bignumber.equal(new BN(this.expectedDebt));
           });
         });
@@ -504,10 +502,10 @@ describe('Regulator', function () {
             this.txHash = this.result.tx;
           });
 
-          it('doesnt mint new Dollar tokens', async function () {
-            expect(await this.dollar.totalSupply()).to.be.bignumber.equal(new BN(1000000));
-            expect(await this.dollar.balanceOf(this.regulator.address)).to.be.bignumber.equal(new BN(1000000));
-            expect(await this.dollar.balanceOf(poolAddress)).to.be.bignumber.equal(new BN(0));
+          it('doesnt mint new Gold tokens', async function () {
+            expect(await this.gold.totalSupply()).to.be.bignumber.equal(new BN(1000000));
+            expect(await this.gold.balanceOf(this.regulator.address)).to.be.bignumber.equal(new BN(1000000));
+            expect(await this.gold.balanceOf(poolAddress)).to.be.bignumber.equal(new BN(0));
           });
 
           it('updates totals', async function () {
@@ -552,10 +550,10 @@ describe('Regulator', function () {
             this.txHash = this.result.tx;
           });
 
-          it('doesnt mint new Dollar tokens', async function () {
-            expect(await this.dollar.totalSupply()).to.be.bignumber.equal(new BN(1000000));
-            expect(await this.dollar.balanceOf(this.regulator.address)).to.be.bignumber.equal(new BN(1000000));
-            expect(await this.dollar.balanceOf(poolAddress)).to.be.bignumber.equal(new BN(0));
+          it('doesnt mint new Gold tokens', async function () {
+            expect(await this.gold.totalSupply()).to.be.bignumber.equal(new BN(1000000));
+            expect(await this.gold.balanceOf(this.regulator.address)).to.be.bignumber.equal(new BN(1000000));
+            expect(await this.gold.balanceOf(poolAddress)).to.be.bignumber.equal(new BN(0));
           });
 
           it('updates totals', async function () {
@@ -598,10 +596,10 @@ describe('Regulator', function () {
           this.txHash = this.result.tx;
         });
 
-        it('doesnt mint new Dollar tokens', async function () {
-          expect(await this.dollar.totalSupply()).to.be.bignumber.equal(new BN(1000000));
-          expect(await this.dollar.balanceOf(this.regulator.address)).to.be.bignumber.equal(new BN(1000000));
-          expect(await this.dollar.balanceOf(poolAddress)).to.be.bignumber.equal(new BN(0));
+        it('doesnt mint new Gold tokens', async function () {
+          expect(await this.gold.totalSupply()).to.be.bignumber.equal(new BN(1000000));
+          expect(await this.gold.balanceOf(this.regulator.address)).to.be.bignumber.equal(new BN(1000000));
+          expect(await this.gold.balanceOf(poolAddress)).to.be.bignumber.equal(new BN(0));
         });
 
         it('updates totals', async function () {
@@ -639,10 +637,10 @@ describe('Regulator', function () {
           this.txHash = this.result.tx;
         });
 
-        it('doesnt mint new Dollar tokens', async function () {
-          expect(await this.dollar.totalSupply()).to.be.bignumber.equal(new BN(1000000));
-          expect(await this.dollar.balanceOf(this.regulator.address)).to.be.bignumber.equal(new BN(1000000));
-          expect(await this.dollar.balanceOf(poolAddress)).to.be.bignumber.equal(new BN(0));
+        it('doesnt mint new Gold tokens', async function () {
+          expect(await this.gold.totalSupply()).to.be.bignumber.equal(new BN(1000000));
+          expect(await this.gold.balanceOf(this.regulator.address)).to.be.bignumber.equal(new BN(1000000));
+          expect(await this.gold.balanceOf(poolAddress)).to.be.bignumber.equal(new BN(0));
         });
 
         it('updates totals', async function () {

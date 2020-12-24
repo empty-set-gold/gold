@@ -1,18 +1,3 @@
-/*
-    Copyright 2020 Empty Set Squad <emptysetsquad@protonmail.com>
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-*/
 
 pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
@@ -28,20 +13,20 @@ contract PoolGetters is PoolState {
      * Global
      */
 
-    function usdc() public view returns (address) {
-        return Constants.getUsdcAddress();
+    function sXAU() public view returns (address) {
+        return Constants.getSXAUAddress();
     }
 
     function dao() public view returns (IDAO) {
-        return IDAO(Constants.getDaoAddress());
+        return _state.provider.dao;
     }
 
-    function dollar() public view returns (IDollar) {
-        return IDollar(Constants.getDollarAddress());
+    function gold() public view returns (IGold) {
+        return _state.provider.gold;
     }
 
     function univ2() public view returns (IERC20) {
-        return IERC20(Constants.getPairAddress());
+        return _state.provider.univ2;
     }
 
     function totalBonded() public view returns (uint256) {
@@ -60,8 +45,8 @@ contract PoolGetters is PoolState {
         return _state.balance.phantom;
     }
 
-    function totalRewarded() public view returns (uint256) {
-        return dollar().balanceOf(address(this)).sub(totalClaimable());
+    function totalRewarded(IGold gold) public view returns (uint256) {
+        return gold.balanceOf(address(this)).sub(totalClaimable());
     }
 
     function paused() public view returns (bool) {
@@ -88,16 +73,16 @@ contract PoolGetters is PoolState {
         return _state.accounts[account].phantom;
     }
 
-    function balanceOfRewarded(address account) public view returns (uint256) {
+    function balanceOfRewarded(address account, IGold gold) public view returns (uint256) {
         uint256 totalBonded = totalBonded();
         if (totalBonded == 0) {
             return 0;
         }
 
-        uint256 totalRewardedWithPhantom = totalRewarded().add(totalPhantom());
+        uint256 totalRewardedWithPhantom = totalRewarded(gold).add(totalPhantom());
         uint256 balanceOfRewardedWithPhantom = totalRewardedWithPhantom
-            .mul(balanceOfBonded(account))
-            .div(totalBonded);
+        .mul(balanceOfBonded(account))
+        .div(totalBonded);
 
         uint256 balanceOfPhantom = balanceOfPhantom(account);
         if (balanceOfRewardedWithPhantom > balanceOfPhantom) {
@@ -106,17 +91,9 @@ contract PoolGetters is PoolState {
         return 0;
     }
 
-    function statusOf(address account) public view returns (PoolAccount.Status) {
-        return epoch() >= _state.accounts[account].fluidUntil ?
-            PoolAccount.Status.Frozen :
-            PoolAccount.Status.Fluid;
-    }
-
-    /**
-     * Epoch
-     */
-
-    function epoch() internal view returns (uint256) {
-        return dao().epoch();
+    function statusOf(address account, uint256 epoch) public view returns (PoolAccount.Status) {
+        return epoch >= _state.accounts[account].fluidUntil ?
+        PoolAccount.Status.Frozen :
+        PoolAccount.Status.Fluid;
     }
 }

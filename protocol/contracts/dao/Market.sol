@@ -1,18 +1,3 @@
-/*
-    Copyright 2020 Empty Set Squad <emptysetsquad@protonmail.com>
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-*/
 
 pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
@@ -28,7 +13,7 @@ contract Market is Comptroller, Curve {
     bytes32 private constant FILE = "Market";
 
     event CouponExpiration(uint256 indexed epoch, uint256 couponsExpired, uint256 lessRedeemable, uint256 lessDebt, uint256 newBonded);
-    event CouponPurchase(address indexed account, uint256 indexed epoch, uint256 dollarAmount, uint256 couponAmount);
+    event CouponPurchase(address indexed account, uint256 indexed epoch, uint256 goldAmount, uint256 couponAmount);
     event CouponRedemption(address indexed account, uint256 indexed epoch, uint256 couponAmount);
     event CouponTransfer(address indexed from, address indexed to, uint256 indexed epoch, uint256 value);
     event CouponApproval(address indexed owner, address indexed spender, uint256 value);
@@ -62,28 +47,28 @@ contract Market is Comptroller, Curve {
     }
 
     function couponPremium(uint256 amount) public view returns (uint256) {
-        return calculateCouponPremium(dollar().totalSupply(), totalDebt(), amount);
+        return calculateCouponPremium(gold().totalSupply(), totalDebt(), amount);
     }
 
-    function purchaseCoupons(uint256 dollarAmount) external returns (uint256) {
+    function purchaseCoupons(uint256 goldAmount) external returns (uint256) {
         Require.that(
-            dollarAmount > 0,
+            goldAmount > 0,
             FILE,
             "Must purchase non-zero amount"
         );
 
         Require.that(
-            totalDebt() >= dollarAmount,
+            totalDebt() >= goldAmount,
             FILE,
             "Not enough debt"
         );
 
         uint256 epoch = epoch();
-        uint256 couponAmount = dollarAmount.add(couponPremium(dollarAmount));
-        burnFromAccount(msg.sender, dollarAmount);
+        uint256 couponAmount = goldAmount.add(couponPremium(goldAmount));
+        burnFromAccount(msg.sender, goldAmount);
         incrementBalanceOfCoupons(msg.sender, epoch, couponAmount);
 
-        emit CouponPurchase(msg.sender, epoch, dollarAmount, couponAmount);
+        emit CouponPurchase(msg.sender, epoch, goldAmount, couponAmount);
 
         return couponAmount;
     }

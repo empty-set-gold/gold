@@ -12,9 +12,9 @@ describe('PollState', function () {
 
   beforeEach(async function () {
     this.dao = await MockSettableDAO.new({from: ownerAddress});
-    this.dollar = await MockToken.new("Empty Set Dollar", "ESD", 18, {from: ownerAddress});
+    this.gold = await MockToken.new("Empty Set Gold", "ESG", 18, {from: ownerAddress});
     this.setters = await MockPoolState.new({from: ownerAddress});
-    await this.setters.set(this.dao.address, this.dollar.address);
+    await this.setters.set(this.dao.address, this.gold.address);
   });
 
   /**
@@ -161,7 +161,7 @@ describe('PollState', function () {
       });
     });
   });
-  
+
   describe('incrementBalanceOfPhantom', function () {
     describe('when called', function () {
       beforeEach('call', async function () {
@@ -212,38 +212,38 @@ describe('PollState', function () {
   describe('unfreeze', function () {
     describe('before called', function () {
       it('is frozen', async function () {
-        expect(await this.setters.statusOf(userAddress)).to.be.bignumber.equal(new BN(0));
+        expect(await this.setters.statusOf(userAddress, await this.dao.epoch())).to.be.bignumber.equal(new BN(0));
       });
     });
 
     describe('when called', function () {
       beforeEach('call', async function () {
-        await this.setters.unfreezeE(userAddress);
+        await this.setters.unfreezeE(userAddress, await this.dao.epoch());
       });
 
       it('is fluid', async function () {
-        expect(await this.setters.statusOf(userAddress)).to.be.bignumber.equal(new BN(1));
+        expect(await this.setters.statusOf(userAddress, await this.dao.epoch())).to.be.bignumber.equal(new BN(1));
       });
     });
 
     describe('when called then advanced within lockup', function () {
       beforeEach('call', async function () {
-        await this.setters.unfreezeE(userAddress);
+        await this.setters.unfreezeE(userAddress, await this.dao.epoch());
         await this.dao.set(1);
       });
 
       it('is frozen', async function () {
-        expect(await this.setters.statusOf(userAddress)).to.be.bignumber.equal(new BN(1));
+        expect(await this.setters.statusOf(userAddress, await this.dao.epoch())).to.be.bignumber.equal(new BN(1));
       });
     });
     describe('when called then advanced after lockup', function () {
       beforeEach('call', async function () {
-        await this.setters.unfreezeE(userAddress);
-        await this.dao.set(5);
+        await this.setters.unfreezeE(userAddress, await this.dao.epoch());
+        await this.dao.set(8);
       });
 
       it('is frozen', async function () {
-        expect(await this.setters.statusOf(userAddress)).to.be.bignumber.equal(new BN(0));
+        expect(await this.setters.statusOf(userAddress, await this.dao.epoch())).to.be.bignumber.equal(new BN(0));
       });
     });
   });
@@ -251,12 +251,12 @@ describe('PollState', function () {
   describe('rewarded', function () {
     describe('no user', function () {
       beforeEach('call', async function () {
-        await this.dollar.mint(this.setters.address, 500);
+        await this.gold.mint(this.setters.address, 500);
       });
 
       it('reward display correctly', async function () {
-        expect(await this.setters.balanceOfRewarded(userAddress)).to.be.bignumber.equal(new BN(0));
-        expect(await this.setters.totalRewarded()).to.be.bignumber.equal(new BN(500));
+        expect(await this.setters.balanceOfRewarded(userAddress, this.gold.address)).to.be.bignumber.equal(new BN(0));
+        expect(await this.setters.totalRewarded(this.gold.address)).to.be.bignumber.equal(new BN(500));
       });
     });
 
@@ -267,12 +267,12 @@ describe('PollState', function () {
 
       describe('when called', function () {
         beforeEach('call', async function () {
-          await this.dollar.mint(this.setters.address, 500);
+          await this.gold.mint(this.setters.address, 500);
         });
 
         it('reward display correctly', async function () {
-          expect(await this.setters.balanceOfRewarded(userAddress)).to.be.bignumber.equal(new BN(500));
-          expect(await this.setters.totalRewarded()).to.be.bignumber.equal(new BN(500));
+          expect(await this.setters.balanceOfRewarded(userAddress, this.gold.address)).to.be.bignumber.equal(new BN(500));
+          expect(await this.setters.totalRewarded(this.gold.address)).to.be.bignumber.equal(new BN(500));
         });
       });
     });
@@ -285,13 +285,13 @@ describe('PollState', function () {
 
       describe('when called', function () {
         beforeEach('call', async function () {
-          await this.dollar.mint(this.setters.address, 500);
+          await this.gold.mint(this.setters.address, 500);
         });
 
         it('reward display correctly', async function () {
-          expect(await this.setters.balanceOfRewarded(userAddress)).to.be.bignumber.equal(new BN(125));
-          expect(await this.setters.balanceOfRewarded(userAddress2)).to.be.bignumber.equal(new BN(375));
-          expect(await this.setters.totalRewarded()).to.be.bignumber.equal(new BN(500));
+          expect(await this.setters.balanceOfRewarded(userAddress, this.gold.address)).to.be.bignumber.equal(new BN(125));
+          expect(await this.setters.balanceOfRewarded(userAddress2, this.gold.address)).to.be.bignumber.equal(new BN(375));
+          expect(await this.setters.totalRewarded(this.gold.address)).to.be.bignumber.equal(new BN(500));
         });
       });
     });

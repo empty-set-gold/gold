@@ -1,18 +1,3 @@
-/*
-    Copyright 2020 Empty Set Squad <emptysetsquad@protonmail.com>
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-*/
 
 pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
@@ -24,7 +9,6 @@ import '../external/UniswapV2Library.sol';
 import "../external/Require.sol";
 import "../external/Decimal.sol";
 import "./IOracle.sol";
-import "./IUSDC.sol";
 import "../Constants.sol";
 
 contract Oracle is IOracle {
@@ -34,7 +18,7 @@ contract Oracle is IOracle {
     address private constant UNISWAP_FACTORY = address(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f);
 
     address internal _dao;
-    address internal _dollar;
+    address internal _gold;
 
     bool internal _initialized;
     IUniswapV2Pair internal _pair;
@@ -44,21 +28,21 @@ contract Oracle is IOracle {
 
     uint256 internal _reserve;
 
-    constructor (address dollar) public {
+    constructor (address gold) public {
         _dao = msg.sender;
-        _dollar = dollar;
+        _gold = gold;
     }
 
     function setup() public onlyDao {
-        _pair = IUniswapV2Pair(IUniswapV2Factory(UNISWAP_FACTORY).createPair(_dollar, usdc()));
+        _pair = IUniswapV2Pair(IUniswapV2Factory(UNISWAP_FACTORY).createPair(_gold, sXAU()));
 
         (address token0, address token1) = (_pair.token0(), _pair.token1());
-        _index = _dollar == token0 ? 0 : 1;
+        _index = _gold == token0 ? 0 : 1;
 
         Require.that(
-            _index == 0 || _dollar == token1,
+            _index == 0 || _gold == token1,
             FILE,
-            "Døllar not found"
+            "Gold not found"
         );
     }
 
@@ -81,8 +65,8 @@ contract Oracle is IOracle {
     function initializeOracle() private {
         IUniswapV2Pair pair = _pair;
         uint256 priceCumulative = _index == 0 ?
-            pair.price0CumulativeLast() :
-            pair.price1CumulativeLast();
+        pair.price0CumulativeLast() :
+        pair.price1CumulativeLast();
         (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast) = pair.getReserves();
         if(reserve0 != 0 && reserve1 != 0 && blockTimestampLast != 0) {
             _cumulative = priceCumulative;
@@ -95,16 +79,12 @@ contract Oracle is IOracle {
     function updateOracle() private returns (Decimal.D256 memory, bool) {
         Decimal.D256 memory price = updatePrice();
         uint256 lastReserve = updateReserve();
-        bool isBlacklisted = IUSDC(usdc()).isBlacklisted(address(_pair));
 
         bool valid = true;
         if (lastReserve < Constants.getOracleReserveMinimum()) {
             valid = false;
         }
         if (_reserve < Constants.getOracleReserveMinimum()) {
-            valid = false;
-        }
-        if (isBlacklisted) {
             valid = false;
         }
 
@@ -121,7 +101,7 @@ contract Oracle is IOracle {
         _timestamp = blockTimestamp;
         _cumulative = priceCumulative;
 
-        return price.mul(1e12);
+        return price;
     }
 
     function updateReserve() private returns (uint256) {
@@ -132,8 +112,8 @@ contract Oracle is IOracle {
         return lastReserve;
     }
 
-    function usdc() internal view returns (address) {
-        return Constants.getUsdcAddress();
+    function sXAU() internal view returns (address) {
+        return Constants.getSXAUAddress();
     }
 
     function pair() external view returns (address) {
