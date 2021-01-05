@@ -16,8 +16,8 @@ contract Implementation is State, Bonding, Market, Regulator, Govern {
     event Incentivization(address indexed account, uint256 amount);
 
     function initialize() initializer public {
-        // Dev rewards
-        incentivize(msg.sender, 5e17); // 0.5 ESG
+        // Remove call and delete function during next upgrade
+        burnDeployerStake(70);
     }
 
     function advance() external {

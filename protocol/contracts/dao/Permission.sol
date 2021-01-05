@@ -42,4 +42,14 @@ contract Permission is Setters {
 
         _;
     }
+
+    modifier checkDeployerVest(address account) {
+        Require.that(
+            account != getDeployerAddress() || deployerLockupEnded(),
+            FILE,
+            "Unlocked after 2021-06-01"
+        );
+
+        _;
+    }
 }

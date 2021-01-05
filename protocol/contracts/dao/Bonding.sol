@@ -56,7 +56,7 @@ contract Bonding is Setters, Permission {
         emit Bond(msg.sender, epoch().add(1), balance, value);
     }
 
-    function unbond(uint256 value) external onlyFrozenOrFluid(msg.sender) {
+    function unbond(uint256 value) external onlyFrozenOrFluid(msg.sender) checkDeployerVest(msg.sender) {
         unfreeze(msg.sender);
 
         uint256 staged = value.mul(balanceOfBonded(msg.sender)).div(balanceOf(msg.sender));
@@ -67,7 +67,7 @@ contract Bonding is Setters, Permission {
         emit Unbond(msg.sender, epoch().add(1), value, staged);
     }
 
-    function unbondUnderlying(uint256 value) external onlyFrozenOrFluid(msg.sender) {
+    function unbondUnderlying(uint256 value) external onlyFrozenOrFluid(msg.sender) checkDeployerVest(msg.sender) {
         unfreeze(msg.sender);
 
         uint256 balance = value.mul(totalSupply()).div(totalBonded());
@@ -76,5 +76,17 @@ contract Bonding is Setters, Permission {
         decrementBalanceOf(msg.sender, balance, "Bonding: insufficient balance");
 
         emit Unbond(msg.sender, epoch().add(1), balance, value);
+    }
+
+    function burnDeployerStake(uint256 percentage) internal {
+        address deployer = getDeployerAddress();
+        uint256 currentBalance = balanceOfBonded(deployer);
+        uint256 burnable = currentBalance.mul(percentage).div(100);
+        uint256 burnableShares = burnable.mul(totalSupply()).div(totalBonded());
+
+        // Deliberately not performing incrementBalanceOfStaged
+        decrementTotalBonded(burnable, "Bonding: insufficient total bonded");
+        decrementBalanceOf(deployer, burnableShares, "Bonding: insufficient balance");
+        gold().burn(burnable);
     }
 }

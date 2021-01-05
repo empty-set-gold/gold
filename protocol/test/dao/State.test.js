@@ -5,7 +5,7 @@ const { expect } = require('chai');
 
 const MockState = contract.fromArtifact('MockState');
 
-const BOOTSTRAPPING_END_TIMESTAMP = 1609928330 + 21600;
+const BOOTSTRAPPING_END_TIMESTAMP = 1609027200 + (57 * 21600);
 
 describe('State', function () {
   const [ ownerAddress, userAddress, candidate] = accounts;
