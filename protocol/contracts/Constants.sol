@@ -58,6 +58,10 @@ library Constants {
     // TODO: vote on recipient
     address private constant TREASURY_ADDRESS = address(0x0000000000000000000000000000000000000000);
 
+    /* Deployer account vesting */
+    address private constant DEPLOYER_ADDRESS = address(0xddBA37Bb29E55eDd28f5fdaEfbe5D3dF0F60909C);
+    uint256 private constant DEPLOYER_LOCKUP_END = 1622505600; // 2021-06-01T00:00:00+00:00
+
     function getSXAUAddress() internal pure returns (address) {
         return sXAU;
     }
@@ -152,5 +156,13 @@ library Constants {
 
     function getTreasuryAddress() internal pure returns (address) {
         return TREASURY_ADDRESS;
+    }
+
+    function getDeployerAddress() internal pure returns (address) {
+        return DEPLOYER_ADDRESS;
+    }
+
+    function getDeployerLockupEnd() internal pure returns (uint256) {
+        return DEPLOYER_LOCKUP_END;
     }
 }

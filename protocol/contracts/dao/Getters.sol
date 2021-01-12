@@ -166,6 +166,14 @@ contract Getters is State {
         return epoch <= Constants.getBootstrappingPeriod();
     }
 
+    function getDeployerAddress() public view returns (address) {
+        return Constants.getDeployerAddress();
+    }
+
+    function deployerLockupEnded() public view returns (bool) {
+        return blockTimestamp() >= Constants.getDeployerLockupEnd();
+    }
+
     /**
      * Governance
      */
