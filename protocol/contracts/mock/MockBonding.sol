@@ -20,10 +20,6 @@ contract MockBonding is MockComptroller, Bonding {
         return deployerAddress;
     }
 
-    function burnDeployerStakeE(uint256 percent) external {
-        super.burnDeployerStake(percent);
-    }
-
     function setBlockTimestamp(uint256 time) external {
         timestamp = time;
     }

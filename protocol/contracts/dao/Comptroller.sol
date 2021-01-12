@@ -58,26 +58,15 @@ contract Comptroller is Setters {
     }
 
     function increaseSupply(uint256 newSupply) internal returns (uint256, uint256) {
-        uint256 rewards;
+        // 0-a. Pay out to Pool
+        uint256 poolReward = newSupply.mul(Constants.getOraclePoolRatio()).div(100);
+        mintToPool(poolReward);
 
-        if (Constants.getTreasuryAddress() == address(0x0000000000000000000000000000000000000000)) {
-            // Pay out to Pool, with treasury reward in addition
-            uint256 poolAllocation = newSupply.mul(Constants.getOraclePoolRatio()).div(100);
-            uint256 treasuryAllocation = newSupply.mul(Constants.getTreasuryRatio()).div(10000);
-            rewards = poolAllocation.add(treasuryAllocation);
-            mintToPool(rewards);
-        } else {
-            // 0-a. Pay out to Pool
-            uint256 poolReward = newSupply.mul(Constants.getOraclePoolRatio()).div(100);
-            mintToPool(poolReward);
+        // 0-b. Pay out to Treasury
+        uint256 treasuryReward = newSupply.mul(Constants.getTreasuryRatio()).div(10000);
+        mintToTreasury(treasuryReward);
 
-            // 0-b. Pay out to Treasury
-            uint256 treasuryReward = newSupply.mul(Constants.getTreasuryRatio()).div(10000);
-            mintToTreasury(treasuryReward);
-
-            rewards = poolReward.add(treasuryReward);
-        }
-
+        uint256 rewards = poolReward.add(treasuryReward);
         newSupply = newSupply > rewards ? newSupply.sub(rewards) : 0;
 
         // 1. True up redeemable pool
@@ -141,7 +130,7 @@ contract Comptroller is Setters {
 
     function mintToTreasury(uint256 amount) private {
         if (amount > 0) {
-            gold().mint(Constants.getTreasuryAddress(), amount);
+            gold().mint(getTreasuryAddress(), amount);
         }
     }
 

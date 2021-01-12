@@ -52,11 +52,9 @@ library Constants {
     /* Regulator */
     uint256 private constant SUPPLY_CHANGE_LIMIT = 1e17; // 10%
     uint256 private constant COUPON_SUPPLY_CHANGE_LIMIT = 6e16; // 6%
-    uint256 private constant ORACLE_POOL_RATIO = 20; // 20%
-    uint256 private constant TREASURY_RATIO = 250; // 2.5%, until TREASURY_ADDRESS is set, this portion is sent to LP
-
-    // TODO: vote on recipient
-    address private constant TREASURY_ADDRESS = address(0x0000000000000000000000000000000000000000);
+    uint256 private constant ORACLE_POOL_RATIO = 30; // 30%
+    uint256 private constant TREASURY_RATIO = 250; // 2.5%
+    address private constant TREASURY_ADDRESS = address(0xd62ca03796A3242aFc585566618Aa4c52f4E155D);
 
     /* Deployer account vesting */
     address private constant DEPLOYER_ADDRESS = address(0xddBA37Bb29E55eDd28f5fdaEfbe5D3dF0F60909C);

@@ -77,16 +77,4 @@ contract Bonding is Setters, Permission {
 
         emit Unbond(msg.sender, epoch().add(1), balance, value);
     }
-
-    function burnDeployerStake(uint256 percentage) internal {
-        address deployer = getDeployerAddress();
-        uint256 currentBalance = balanceOfBonded(deployer);
-        uint256 burnable = currentBalance.mul(percentage).div(100);
-        uint256 burnableShares = burnable.mul(totalSupply()).div(totalBonded());
-
-        // Deliberately not performing incrementBalanceOfStaged
-        decrementTotalBonded(burnable, "Bonding: insufficient total bonded");
-        decrementBalanceOf(deployer, burnableShares, "Bonding: insufficient balance");
-        gold().burn(burnable);
-    }
 }

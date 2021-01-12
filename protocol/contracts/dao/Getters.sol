@@ -170,6 +170,10 @@ contract Getters is State {
         return Constants.getDeployerAddress();
     }
 
+    function getTreasuryAddress() public view returns (address) {
+        return Constants.getTreasuryAddress();
+    }
+
     function deployerLockupEnded() public view returns (bool) {
         return blockTimestamp() >= Constants.getDeployerLockupEnd();
     }
