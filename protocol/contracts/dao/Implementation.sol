@@ -16,7 +16,7 @@ contract Implementation is State, Bonding, Market, Regulator, Govern {
     event Incentivization(address indexed account, uint256 amount);
 
     function initialize() initializer public {
-        mintToAccount(getTreasuryAddress(), 100e18);
+        mintToAccount(Constants.getTreasuryAddress(), 100e18);
     }
 
     function advance() external {

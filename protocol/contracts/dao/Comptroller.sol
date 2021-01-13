@@ -130,7 +130,7 @@ contract Comptroller is Setters {
 
     function mintToTreasury(uint256 amount) private {
         if (amount > 0) {
-            gold().mint(getTreasuryAddress(), amount);
+            gold().mint(Constants.getTreasuryAddress(), amount);
         }
     }
 
