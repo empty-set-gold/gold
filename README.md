@@ -10,7 +10,8 @@ Fully decentralized self-stabilizing gold, guided by a DAO.
 
 ## contracts
 ### mainnet
-- `0x227bfdba783ba490bfa012d68d22165fde35ab90` **DAO**
+- `0xda4a90c4d06e2384148a2e67e44a504a8f555f54` **DAO Proxy**
+- `0x7C41a5365aB4aD87CAeFdCFD2841b517CD0cBF63` **Implementation**
 - `0x5cf9242493be1411b93d064ca2e468961bbb5924` **Gold**
 - `0x6944eb48b1760c6613d54e4fa0d892154c76aea7` **Oracle**
 - `0x94926da4c34c3a379426b51af154fcbf24c2026a` **UniswapV2 sXAU:ESG Pair**

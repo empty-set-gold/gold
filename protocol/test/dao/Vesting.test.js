@@ -79,35 +79,6 @@ describe('Deployer Contract Vesting/Burn Mechanism', () => {
         );
     })
 
-    it('should burn 70% of the deployer stake and ESG in response to burnDeployerStake()', async () => {
-        const seventyPercent = new BN(70);
-        await self.bonding.burnDeployerStakeE(seventyPercent, {from: userC});
-
-        const deployerSharePostBurn = INITIAL_STAKE_MULTIPLE.mul(new BN(3));
-        const userAShare = INITIAL_STAKE_MULTIPLE.mul(new BN(2));
-        const userBShare = INITIAL_STAKE_MULTIPLE.mul(new BN(1));
-
-        expect(await self.bonding.totalBonded()).to.be.bignumber.equal(
-            new BN(3).add(new BN(2)).add(new BN(1))
-        );
-
-        expect(await self.bonding.totalSupply()).to.be.bignumber.equal(
-            deployerSharePostBurn.add(userAShare).add(userBShare)
-        );
-
-        expect(await self.gold.totalSupply()).to.be.bignumber.equal(
-            new BN(3).add(new BN(2)).add(new BN(1)).add(new BN(additionalCirculatingUser.initialBalance))
-        );
-
-        expect(await self.gold.balanceOf(additionalCirculatingUser.acc)).to.be.bignumber.equal(
-            new BN(additionalCirculatingUser.initialBalance)
-        );
-
-        expect(await self.bonding.balanceOf(deployerAddress)).to.be.bignumber.equal(deployerSharePostBurn)
-        expect(await self.bonding.balanceOf(userA)).to.be.bignumber.equal(userAShare)
-        expect(await self.bonding.balanceOf(userB)).to.be.bignumber.equal(userBShare)
-    })
-
     it('should allow users to unbond their balance', async () => {
         for (const {acc, unbondAmount} of [{acc: userA, unbondAmount: 2}, {acc: userB, unbondAmount: 1}]) {
             const unbondResult = await this.bonding.unbondUnderlying(unbondAmount, {from: acc})
@@ -137,15 +108,15 @@ describe('Deployer Contract Vesting/Burn Mechanism', () => {
     })
 
     it('should not allow the deployer to unbond before the vesting deadline', async () => {
-        await expectRevert(this.bonding.unbondUnderlying(3, {from: deployerAddress}), "Permission: Unlocked after 2021-06-01")
+        await expectRevert(this.bonding.unbondUnderlying(10, {from: deployerAddress}), "Permission: Unlocked after 2021-06-01")
         await self.bonding.setBlockTimestamp(DEPLOYER_LOCKUP_END + (21600 * 2));
 
-        const unbondResult = await this.bonding.unbondUnderlying(3, {from: deployerAddress});
+        const unbondResult = await this.bonding.unbondUnderlying(10, {from: deployerAddress});
         const event = await expectEvent.inTransaction(unbondResult.tx, MockBonding, 'Unbond', {
             account: deployerAddress
         });
 
-        expect(event.args.value).to.be.bignumber.equal(new BN(3).mul(INITIAL_STAKE_MULTIPLE));
-        expect(event.args.valueUnderlying).to.be.bignumber.equal(new BN(3));
+        expect(event.args.value).to.be.bignumber.equal(new BN(10).mul(INITIAL_STAKE_MULTIPLE));
+        expect(event.args.valueUnderlying).to.be.bignumber.equal(new BN(10));
     })
 });
