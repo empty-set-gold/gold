@@ -50,11 +50,11 @@ async function signPermit(gold, privateKey, message) {
 }
 
 describe('Gold', function () {
-  const [ ownerAddress, userAddress, poolAddress ] = accounts;
+  const [ ownerAddress, userAddress, poolAddress, notUsed ] = accounts;
   const [ _, userPrivateKey ] = privateKeys;
 
   beforeEach(async function () {
-    this.dao = await MockComptroller.new(poolAddress, {from: ownerAddress, gas: 8000000});
+    this.dao = await MockComptroller.new(poolAddress, notUsed, {from: ownerAddress, gas: 8000000});
     this.gold = await Gold.at(await this.dao.gold());
   });
 
@@ -209,8 +209,7 @@ describe('Gold', function () {
     describe('amount equals approved', function () {
       beforeEach('transferFrom', async function () {
         await this.gold.approve(userAddress, 100, {from: ownerAddress});
-        const { logs } = await this.gold.transferFrom(ownerAddress, userAddress, 100, {from: userAddress});
-        this.logs = logs;
+        this.tx = await this.gold.transferFrom(ownerAddress, userAddress, 100, {from: userAddress});
       });
 
       it('decrements allowance', async function () {
@@ -219,7 +218,7 @@ describe('Gold', function () {
       });
 
       it('emits Transfer event', async function () {
-        const event = expectEvent.inLogs(this.logs, 'Transfer', {
+        const event = expectEvent(this.tx, 'Transfer', {
           from: ownerAddress,
           to: userAddress,
         });
@@ -242,8 +241,7 @@ describe('Gold', function () {
     describe('approve unlimited', function () {
       beforeEach('transferFrom', async function () {
         await this.gold.approve(userAddress, constants.MAX_UINT256, {from: ownerAddress});
-        const { logs } = await this.gold.transferFrom(ownerAddress, userAddress, 100, {from: userAddress});
-        this.logs = logs;
+        this.tx = await this.gold.transferFrom(ownerAddress, userAddress, 100, {from: userAddress});
       });
 
       it('doesnt decrement allowance', async function () {
@@ -252,7 +250,7 @@ describe('Gold', function () {
       });
 
       it('emits Transfer event', async function () {
-        const event = expectEvent.inLogs(this.logs, 'Transfer', {
+        const event = expectEvent(this.tx, 'Transfer', {
           from: ownerAddress,
           to: userAddress,
         });

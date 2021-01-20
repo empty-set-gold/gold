@@ -2,7 +2,7 @@
 pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "../oracle/Pool.sol";
+import "../oracle/legacy/Pool.sol";
 
 contract MockPool is Pool {
     address private _sXAU;

@@ -123,7 +123,9 @@ contract Comptroller is Setters {
     }
 
     function mintToPool(uint256 amount) private {
-        if (amount > 0) {
+        if (amount > 0 && _hybridOracleState.isEnabled) {
+            hybridOracle().distributeToPools(amount);
+        } else if (amount > 0) {
             gold().mint(pool(), amount);
         }
     }

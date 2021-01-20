@@ -4,11 +4,11 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../external/Require.sol";
-import "../Constants.sol";
+import "../../external/Require.sol";
+import "../../Constants.sol";
+import "../../external/UniswapV2Library.sol";
 import "./PoolSetters.sol";
-import "./IDAO.sol";
-import "../external/UniswapV2Library.sol";
+import "../../dao/IDAO.sol";
 
 contract Pool is PoolSetters {
     using SafeMath for uint256;
@@ -26,8 +26,7 @@ contract Pool is PoolSetters {
         (uint reserveA, uint reserveB) = getReserves(gold, sXAU);
 
         uint256 sXAUAmount = (reserveA == 0 && reserveB == 0) ?
-        goldAmount :
-        UniswapV2Library.quote(goldAmount, reserveA, reserveB);
+            goldAmount : UniswapV2Library.quote(goldAmount, reserveA, reserveB);
 
         address pair = address(_state.provider.univ2);
         IERC20(gold).transfer(pair, goldAmount);

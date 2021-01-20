@@ -52,4 +52,14 @@ contract Permission is Setters {
 
         _;
     }
+
+    modifier onlyTreasury() {
+        Require.that(
+            msg.sender == getTreasuryAddress(),
+            FILE,
+            "Only Treasury allowed"
+        );
+
+        _;
+    }
 }

@@ -10,7 +10,7 @@ contract MockBonding is MockComptroller, Bonding {
     address private deployerAddress;
     uint256 private timestamp;
 
-    constructor() MockComptroller(address(0)) public { }
+    constructor() MockComptroller(address(0), address(0)) public { }
 
     function setDeployerAddress(address deployer) external {
         deployerAddress = deployer;

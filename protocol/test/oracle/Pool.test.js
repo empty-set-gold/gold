@@ -3,10 +3,11 @@ const { accounts, contract } = require('@openzeppelin/test-environment');
 const { BN, expectEvent, expectRevert, time } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 
-const MockPool = contract.fromArtifact('MockPool');
+const MockHybridPool = contract.fromArtifact('MockHybridPool');
 const MockToken = contract.fromArtifact('MockToken');
 const MockUniswapV2PairLiquidity = contract.fromArtifact('MockUniswapV2PairLiquidity');
 const MockSettableDAO = contract.fromArtifact('MockSettableDAO');
+const StubHybridOracle = contract.fromArtifact('StubHybridOracle');
 
 const INITIAL_STAKE_MULTIPLE = new BN(10).pow(new BN(6)); // 100 ESG -> 100M ESGS
 
@@ -25,8 +26,14 @@ describe('Pool', function () {
     await this.dao.set(1);
     this.gold = await MockToken.new("Empty Set Gold", "ESG", 18, {from: ownerAddress, gas: 8000000});
     this.sXAU = await MockToken.new("sXAU", "Synth sXAU", 18, {from: ownerAddress, gas: 8000000});
-    this.univ2 = await MockUniswapV2PairLiquidity.new({from: ownerAddress, gas: 8000000});
-    this.pool = await MockPool.new(this.sXAU.address, this.gold.address, this.univ2.address, {from: ownerAddress, gas: 8000000});
+    this.univ2 = await MockUniswapV2PairLiquidity.new(this.gold.address, this.sXAU.address, {from: ownerAddress, gas: 8000000});
+    this.backingAssetOracle = await StubHybridOracle.new({from: ownerAddress})
+    this.pool = await MockHybridPool.new(
+        this.gold.address,
+        this.univ2.address,
+        this.backingAssetOracle.address,
+        {from: ownerAddress, gas: 8000000}
+    )
     await this.pool.set(this.dao.address);
   });
 
@@ -63,7 +70,7 @@ describe('Pool', function () {
       });
 
       it('emits Deposit event', async function () {
-        const event = await expectEvent.inTransaction(this.txHash, MockPool, 'Deposit', {
+        const event = await expectEvent.inTransaction(this.txHash, MockHybridPool, 'Deposit', {
           account: userAddress
         });
 
@@ -99,7 +106,7 @@ describe('Pool', function () {
         });
 
         it('emits Withdraw event', async function () {
-          const event = await expectEvent.inTransaction(this.txHash, MockPool, 'Withdraw', {
+          const event = await expectEvent.inTransaction(this.txHash, MockHybridPool, 'Withdraw', {
             account: userAddress
           });
 
@@ -159,7 +166,7 @@ describe('Pool', function () {
         });
 
         it('emits Claim event', async function () {
-          const event = await expectEvent.inTransaction(this.txHash, MockPool, 'Claim', {
+          const event = await expectEvent.inTransaction(this.txHash, MockHybridPool, 'Claim', {
             account: userAddress
           });
 
@@ -207,7 +214,7 @@ describe('Pool', function () {
           });
 
           it('emits Bond event', async function () {
-            const event = await expectEvent.inTransaction(this.txHash, MockPool, 'Bond', {
+            const event = await expectEvent.inTransaction(this.txHash, MockHybridPool, 'Bond', {
               account: userAddress
             });
 
@@ -243,7 +250,7 @@ describe('Pool', function () {
           });
 
           it('emits Bond event', async function () {
-            const event = await expectEvent.inTransaction(this.txHash, MockPool, 'Bond', {
+            const event = await expectEvent.inTransaction(this.txHash, MockHybridPool, 'Bond', {
               account: userAddress
             });
 
@@ -292,7 +299,7 @@ describe('Pool', function () {
           });
 
           it('emits Bond event', async function () {
-            const event = await expectEvent.inTransaction(this.txHash, MockPool, 'Bond', {
+            const event = await expectEvent.inTransaction(this.txHash, MockHybridPool, 'Bond', {
               account: userAddress
             });
 
@@ -331,7 +338,7 @@ describe('Pool', function () {
           });
 
           it('emits Bond event', async function () {
-            const event = await expectEvent.inTransaction(this.txHash, MockPool, 'Bond', {
+            const event = await expectEvent.inTransaction(this.txHash, MockHybridPool, 'Bond', {
               account: userAddress
             });
 
@@ -369,7 +376,7 @@ describe('Pool', function () {
           });
 
           it('emits Bond event', async function () {
-            const event = await expectEvent.inTransaction(this.txHash, MockPool, 'Bond', {
+            const event = await expectEvent.inTransaction(this.txHash, MockHybridPool, 'Bond', {
               account: userAddress
             });
 
@@ -424,7 +431,7 @@ describe('Pool', function () {
           });
 
           it('emits Bond event', async function () {
-            const event = await expectEvent.inTransaction(this.txHash, MockPool, 'Bond', {
+            const event = await expectEvent.inTransaction(this.txHash, MockHybridPool, 'Bond', {
               account: userAddress
             });
 
@@ -478,7 +485,7 @@ describe('Pool', function () {
           });
 
           it('emits Bond event', async function () {
-            const event = await expectEvent.inTransaction(this.txHash, MockPool, 'Bond', {
+            const event = await expectEvent.inTransaction(this.txHash, MockHybridPool, 'Bond', {
               account: userAddress
             });
 
@@ -523,7 +530,7 @@ describe('Pool', function () {
           });
 
           it('emits Unbond event', async function () {
-            const event = await expectEvent.inTransaction(this.txHash, MockPool, 'Unbond', {
+            const event = await expectEvent.inTransaction(this.txHash, MockHybridPool, 'Unbond', {
               account: userAddress
             });
 
@@ -556,7 +563,7 @@ describe('Pool', function () {
           });
 
           it('emits Unbond event', async function () {
-            const event = await expectEvent.inTransaction(this.txHash, MockPool, 'Unbond', {
+            const event = await expectEvent.inTransaction(this.txHash, MockHybridPool, 'Unbond', {
               account: userAddress
             });
 
@@ -602,7 +609,7 @@ describe('Pool', function () {
           });
 
           it('emits Unbond event', async function () {
-            const event = await expectEvent.inTransaction(this.txHash, MockPool, 'Unbond', {
+            const event = await expectEvent.inTransaction(this.txHash, MockHybridPool, 'Unbond', {
               account: userAddress
             });
 
@@ -649,7 +656,7 @@ describe('Pool', function () {
           });
 
           it('emits Unbond event', async function () {
-            const event = await expectEvent.inTransaction(this.txHash, MockPool, 'Unbond', {
+            const event = await expectEvent.inTransaction(this.txHash, MockHybridPool, 'Unbond', {
               account: userAddress
             });
 
@@ -684,7 +691,7 @@ describe('Pool', function () {
           });
 
           it('emits Unbond event', async function () {
-            const event = await expectEvent.inTransaction(this.txHash, MockPool, 'Unbond', {
+            const event = await expectEvent.inTransaction(this.txHash, MockHybridPool, 'Unbond', {
               account: userAddress
             });
 
@@ -739,7 +746,7 @@ describe('Pool', function () {
           });
 
           it('emits Unbond event', async function () {
-            const event = await expectEvent.inTransaction(this.txHash, MockPool, 'Unbond', {
+            const event = await expectEvent.inTransaction(this.txHash, MockHybridPool, 'Unbond', {
               account: userAddress
             });
 
@@ -798,7 +805,7 @@ describe('Pool', function () {
           });
 
           it('emits Unbond event', async function () {
-            const event = await expectEvent.inTransaction(this.txHash, MockPool, 'Unbond', {
+            const event = await expectEvent.inTransaction(this.txHash, MockHybridPool, 'Unbond', {
               account: userAddress
             });
 
@@ -826,7 +833,7 @@ describe('Pool', function () {
 
       describe('not enough rewards', function () {
         it('reverts', async function () {
-          await expectRevert(this.pool.provide(2000, {from: userAddress}), "Pool: insufficient rewarded balance");
+          await expectRevert(this.pool.provide(2000, {from: userAddress}), "HybridPoolBase: insufficient rewarded balance");
         });
       });
 
@@ -867,12 +874,12 @@ describe('Pool', function () {
         });
 
         it('emits Deposit event', async function () {
-          const event = await expectEvent.inTransaction(this.txHash, MockPool, 'Provide', {
+          const event = await expectEvent.inTransaction(this.txHash, MockHybridPool, 'Provide', {
             account: userAddress
           });
 
           expect(event.args.value).to.be.bignumber.equal(new BN(1000));
-          expect(event.args.lessSXAU).to.be.bignumber.equal(new BN(1000));
+          expect(event.args.lessBackingAsset).to.be.bignumber.equal(new BN(1000));
           expect(event.args.newUniv2).to.be.bignumber.equal(new BN(10));
         });
       });
@@ -924,12 +931,12 @@ describe('Pool', function () {
         });
 
         it('emits Deposit event', async function () {
-          const event = await expectEvent.inTransaction(this.txHash, MockPool, 'Provide', {
+          const event = await expectEvent.inTransaction(this.txHash, MockHybridPool, 'Provide', {
             account: userAddress
           });
 
           expect(event.args.value).to.be.bignumber.equal(new BN(1000));
-          expect(event.args.lessSXAU).to.be.bignumber.equal(new BN(3000));
+          expect(event.args.lessBackingAsset).to.be.bignumber.equal(new BN(3000));
           expect(event.args.newUniv2).to.be.bignumber.equal(new BN(10));
         });
       });
@@ -952,25 +959,25 @@ describe('Pool', function () {
 
     describe('when deposit', function () {
       it('reverts', async function () {
-        await expectRevert(this.pool.deposit(1000, {from: userAddress}), "Pool: Not frozen");
+        await expectRevert(this.pool.deposit(1000, {from: userAddress}), "HybridPoolBase: Not frozen");
       });
     });
 
     describe('when withdraw', function () {
       it('reverts', async function () {
-        await expectRevert(this.pool.withdraw(1000, {from: userAddress}), "Pool: Not frozen");
+        await expectRevert(this.pool.withdraw(1000, {from: userAddress}), "HybridPoolBase: Not frozen");
       });
     });
 
     describe('when claim', function () {
       it('reverts', async function () {
-        await expectRevert(this.pool.claim(1000, {from: userAddress}), "Pool: Not frozen");
+        await expectRevert(this.pool.claim(1000, {from: userAddress}), "HybridPoolBase: Not frozen");
       });
     });
 
     describe('when provide', function () {
       it('reverts', async function () {
-        await expectRevert(this.pool.provide(1000, {from: userAddress}), "Pool: Not frozen");
+        await expectRevert(this.pool.provide(1000, {from: userAddress}), "HybridPoolBase: Not frozen");
       });
     });
 
@@ -997,7 +1004,7 @@ describe('Pool', function () {
       });
 
       it('emits Bond event', async function () {
-        const event = await expectEvent.inTransaction(this.txHash, MockPool, 'Bond', {
+        const event = await expectEvent.inTransaction(this.txHash, MockHybridPool, 'Bond', {
           account: userAddress
         });
 
@@ -1029,7 +1036,7 @@ describe('Pool', function () {
       });
 
       it('emits Unbond event', async function () {
-        const event = await expectEvent.inTransaction(this.txHash, MockPool, 'Unbond', {
+        const event = await expectEvent.inTransaction(this.txHash, MockHybridPool, 'Unbond', {
           account: userAddress
         });
 

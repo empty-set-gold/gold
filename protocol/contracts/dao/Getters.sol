@@ -5,6 +5,7 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./State.sol";
 import "../Constants.sol";
+import "../oracle/legacy/IOracle.sol";
 
 contract Getters is State {
     using SafeMath for uint256;
@@ -48,8 +49,13 @@ contract Getters is State {
         return _state.provider.gold;
     }
 
+    // Legacy sXAU Oracle implementation
     function oracle() public view returns (IOracle) {
         return _state.provider.oracle;
+    }
+
+    function hybridOracle() public view returns (IHybridOraclePool) {
+        return _hybridOracleState.hybridOracle;
     }
 
     function pool() public view returns (address) {
@@ -172,6 +178,10 @@ contract Getters is State {
 
     function deployerLockupEnded() public view returns (bool) {
         return blockTimestamp() >= Constants.getDeployerLockupEnd();
+    }
+
+    function getTreasuryAddress() public view returns (address) {
+        return Constants.getTreasuryAddress();
     }
 
     /**

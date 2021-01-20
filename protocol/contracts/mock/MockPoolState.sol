@@ -2,7 +2,7 @@
 pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "../oracle/PoolSetters.sol";
+import "../oracle/legacy/PoolSetters.sol";
 
 contract MockPoolState is PoolSetters {
     address private _dao;

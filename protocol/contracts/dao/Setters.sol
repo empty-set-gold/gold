@@ -174,4 +174,8 @@ contract Setters is State, Getters {
     function initialized(address candidate) internal {
         _state.candidates[candidate].initialized = true;
     }
+
+    function setHybridOracleEnabled(bool enabled) internal {
+        _hybridOracleState.isEnabled = enabled;
+    }
 }

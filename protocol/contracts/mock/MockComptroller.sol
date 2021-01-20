@@ -7,9 +7,14 @@ import "../token/Gold.sol";
 import "./MockState.sol";
 
 contract MockComptroller is Comptroller, MockState {
-    constructor(address pool) public {
+    constructor(address pool, address hybridOracle) public {
         _state.provider.gold = new Gold();
         _state.provider.pool = pool;
+        _hybridOracleState.hybridOracle = IHybridOraclePool(hybridOracle);
+    }
+
+    function setHybridOracleEnabledE(bool enabled) external {
+        setHybridOracleEnabled(enabled);
     }
 
     function mintToAccountE(address account, uint256 amount) external {
@@ -38,6 +43,10 @@ contract MockComptroller is Comptroller, MockState {
 
     function resetDebtE(uint256 percent) external {
         super.resetDebt(Decimal.ratio(percent, 100));
+    }
+
+    function increaseSupplyE(uint256 amount) external {
+        super.increaseSupply(amount);
     }
 
     /* For testing only */

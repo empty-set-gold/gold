@@ -6,6 +6,7 @@ const { expect } = require('chai');
 const MockRegulator = contract.fromArtifact('MockRegulator');
 const MockSettableOracle = contract.fromArtifact('MockSettableOracle');
 const Gold = contract.fromArtifact('Gold');
+const StubHybridOracle = contract.fromArtifact('StubHybridOracle');
 
 const POOL_REWARD_PERCENT = 30;
 const TREASURY_REWARD_BIPS = 250;
@@ -28,9 +29,30 @@ describe('Regulator', function () {
 
   beforeEach(async function () {
     this.oracle = await MockSettableOracle.new({from: ownerAddress, gas: 8000000});
-    this.regulator = await MockRegulator.new(this.oracle.address, poolAddress, {from: ownerAddress, gas: 8000000});
+    this.stubHybridOracle = await StubHybridOracle.new({from: ownerAddress});
+    this.regulator = await MockRegulator.new(this.oracle.address, poolAddress, this.stubHybridOracle.address, {from: ownerAddress, gas: 8000000});
     this.gold = await Gold.at(await this.regulator.gold());
   });
+
+  describe('oracleCapture method', async function () {
+    beforeEach(async function () {
+      await this.regulator.incrementEpochE();
+    });
+
+    it('should call the hybrid oracle capture, and also maintain the legacy oracle TWAP when the hybrid oracle is on', async function () {
+      await this.regulator.setHybridOracleEnabledE(true)
+      await this.regulator.stepE()
+      expect(await this.stubHybridOracle.captureCalled()).to.be.true
+      expect(await this.oracle.captureCalled()).to.be.true
+    })
+
+    it('should call only the legacy oracle capture when the hybrid oracle is off', async function () {
+      await this.regulator.setHybridOracleEnabledE(false)
+      await this.regulator.stepE()
+      expect(await this.stubHybridOracle.captureCalled()).to.be.false
+      expect(await this.oracle.captureCalled()).to.be.true
+    })
+  })
 
   describe('after bootstrapped', function () {
     beforeEach(async function () {

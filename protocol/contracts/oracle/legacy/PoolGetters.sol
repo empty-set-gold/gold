@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./PoolState.sol";
-import "../Constants.sol";
+import "../../Constants.sol";
 
 contract PoolGetters is PoolState {
     using SafeMath for uint256;

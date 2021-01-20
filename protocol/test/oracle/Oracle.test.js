@@ -1,11 +1,13 @@
-const { accounts, contract } = require('@openzeppelin/test-environment');
+const { accounts, contract, web3 } = require('@openzeppelin/test-environment');
 
-const { BN, expectRevert, time, constants } = require('@openzeppelin/test-helpers');
+const { BN, expectRevert, time } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 
 const Gold = contract.fromArtifact('Gold');
-const MockOracle = contract.fromArtifact('MockOracle');
+const MockHybridOracle = contract.fromArtifact('MockHybridOracle');
+const MockBackingAsset = contract.fromArtifact('MockBackingAsset');
 const MockUniswapV2PairTrade = contract.fromArtifact('MockUniswapV2PairTrade');
+const MockAggregatorV3Interface = contract.fromArtifact('MockAggregatorV3Interface');
 
 const DECIMAL_DIFF = new BN(10).pow(new BN(0));
 const EPSILON = new BN(1).mul(DECIMAL_DIFF);
@@ -36,24 +38,31 @@ describe('Oracle', function () {
   const [ ownerAddress, userAddress ] = accounts;
 
   beforeEach(async function () {
+    const [decimals, initialPrice, reserveMinimum, decimalOffset] = [8, 1000e8, 1e18, 0]
     this.gold = await Gold.new({from: ownerAddress});
-    this.amm = await MockUniswapV2PairTrade.new({from: ownerAddress});
-    this.oracle = await MockOracle.new(this.amm.address, this.gold.address, {from: ownerAddress, gas: 8000000});
-    await time.increase(3600);
-  });
+    this.mockBackingAsset = await MockBackingAsset.new({from: ownerAddress})
+    this.amm = await MockUniswapV2PairTrade.new(this.gold.address, this.mockBackingAsset.address, {from: ownerAddress})
+    this.goldOracle = await MockAggregatorV3Interface.new(decimals, initialPrice, {from: ownerAddress})
+    this.backingAssetOracle = await MockAggregatorV3Interface.new(decimals, initialPrice, {from: ownerAddress})
+    this.oracle = await MockHybridOracle.new(
+        this.amm.address,
+        this.gold.address,
+        this.backingAssetOracle.address,
+        this.goldOracle.address,
+        web3.utils.stringToHex("Mock_Oracle"),
+        reserveMinimum.toString(),
+        decimalOffset.toString(),
+        {from: ownerAddress, gas: 8000000}
+    )
+    await this.oracle.setHybridOracleAddress(ownerAddress, {from: ownerAddress})
 
-  describe('setup', function () {
-    describe('not dao', function () {
-      it('reverts', async function () {
-        await expectRevert(this.oracle.setup({from: userAddress}), "Oracle: Not dao");
-      });
-    });
+    await time.increase(3600);
   });
 
   describe('step', function () {
     describe('not dao', function () {
       it('reverts', async function () {
-        await expectRevert(this.oracle.capture({from: userAddress}), "Oracle: Not dao");
+        await expectRevert(this.oracle.capture({from: userAddress}), "Mock_Oracle: Not Hybrid Oracle");
       });
     });
 

@@ -3,8 +3,8 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../token/IGold.sol";
-import "./IDAO.sol";
+import "../../dao/IDAO.sol";
+import "../../token/IGold.sol";
 
 contract PoolAccount {
     enum Status {

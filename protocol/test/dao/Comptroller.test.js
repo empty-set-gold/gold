@@ -4,6 +4,7 @@ const { BN, expectRevert, time } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 
 const MockComptroller = contract.fromArtifact('MockComptroller');
+const StubHybridOraclePool = contract.fromArtifact('StubHybridOraclePool')
 const Gold = contract.fromArtifact('Gold');
 
 const BOOTSTRAPPING_PERIOD = 90;
@@ -12,8 +13,25 @@ describe('Comptroller', function () {
   const [ ownerAddress, userAddress, poolAddress, circulating ] = accounts;
 
   beforeEach(async function () {
-    this.comptroller = await MockComptroller.new(poolAddress, {from: ownerAddress, gas: 8000000});
+    this.hybridOracleStub = await StubHybridOraclePool.new({from: ownerAddress})
+    this.comptroller = await MockComptroller.new(poolAddress, this.hybridOracleStub.address, {from: ownerAddress, gas: 8000000});
     this.gold = await Gold.at(await this.comptroller.gold());
+  });
+
+  describe('mintToPool', async function () {
+    it('should delegate the mint to the hybrid oracle if the hybrid oracle is enabled', async function () {
+      await this.comptroller.setHybridOracleEnabledE(true)
+      await this.comptroller.increaseSupplyE(1000);
+      expect(await this.hybridOracleStub.distributedAmount()).to.be.bignumber.equal('300')
+      expect(await this.gold.balanceOf(poolAddress)).to.be.bignumber.equal('0')
+    })
+
+    it('should mint directly to the legacy pool if the hybrid oracle is disabled', async function () {
+      await this.comptroller.setHybridOracleEnabledE(false)
+      await this.comptroller.increaseSupplyE(1000);
+      expect(await this.hybridOracleStub.distributedAmount()).to.be.bignumber.equal('0')
+      expect(await this.gold.balanceOf(poolAddress)).to.be.bignumber.equal('300')
+    })
   });
 
   describe('mintToAccount', function () {

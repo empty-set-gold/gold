@@ -60,6 +60,23 @@ library Constants {
     address private constant DEPLOYER_ADDRESS = address(0xddBA37Bb29E55eDd28f5fdaEfbe5D3dF0F60909C);
     uint256 private constant DEPLOYER_LOCKUP_END = 1622505600; // 2021-06-01T00:00:00+00:00
 
+    address private constant DAO_ADDRESS = address(0xda4A90c4d06E2384148a2e67E44a504A8F555f54);
+    address private constant GOLD_ADDRESS = address(0x5cf9242493bE1411b93d064CA2e468961BBb5924);
+
+    /* Hybrid Oracles */
+    // Aggregator
+    address private constant HYBRID_ORACLE_POOL_ADDRESS = address(0x0);
+
+    address private constant DAI_ESG_ORACLE_ADDRESS = address(0x0);
+    address private constant DAI_ESG_POOL_ADDRESS = address(0x0);
+
+    address private constant SXAU_ESG_ORACLE_ADDRESS = address(0x0);
+    address private constant SXAU_ESG_POOL_ADDRESS = address(0x0);
+
+    address private constant WETH_ESG_ORACLE_ADDRESS = address(0x0);
+    address private constant WETH_ESG_POOL_ADDRESS = address(0x0);
+
+
     function getSXAUAddress() internal pure returns (address) {
         return sXAU;
     }
@@ -162,5 +179,29 @@ library Constants {
 
     function getDeployerLockupEnd() internal pure returns (uint256) {
         return DEPLOYER_LOCKUP_END;
+    }
+
+    function getDaoAddress() internal pure returns (address) {
+        return DAO_ADDRESS;
+    }
+
+    function getGoldAddress() internal pure returns (address) {
+        return GOLD_ADDRESS;
+    }
+
+    function getHybridOraclePoolAddress() internal pure returns (address) {
+        return HYBRID_ORACLE_POOL_ADDRESS;
+    }
+
+    function get_SXAU_ESG_Addresses() internal pure returns (address, address) {
+        return (SXAU_ESG_ORACLE_ADDRESS, SXAU_ESG_POOL_ADDRESS);
+    }
+
+    function get_WETH_ESG_Addresses() internal pure returns (address, address) {
+        return (WETH_ESG_ORACLE_ADDRESS, WETH_ESG_POOL_ADDRESS);
+    }
+
+    function get_DAI_ESG_Addresses() internal pure returns (address, address) {
+        return (DAI_ESG_ORACLE_ADDRESS, DAI_ESG_POOL_ADDRESS);
     }
 }

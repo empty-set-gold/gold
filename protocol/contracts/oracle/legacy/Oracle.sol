@@ -4,12 +4,12 @@ pragma experimental ABIEncoderV2;
 
 import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol';
 import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
-import '../external/UniswapV2OracleLibrary.sol';
-import '../external/UniswapV2Library.sol';
-import "../external/Require.sol";
-import "../external/Decimal.sol";
+import '../../external/UniswapV2OracleLibrary.sol';
+import '../../external/UniswapV2Library.sol';
+import "../../external/Require.sol";
+import "../../external/Decimal.sol";
 import "./IOracle.sol";
-import "../Constants.sol";
+import "../../Constants.sol";
 
 contract Oracle is IOracle {
     using Decimal for Decimal.D256;

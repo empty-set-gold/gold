@@ -13,6 +13,22 @@ contract MockUniswapV2PairTrade is IUniswapV2Pair {
     uint public price0CumulativeLast;
     uint public price1CumulativeLast;
 
+    address _token0;
+    address _token1;
+
+    constructor(address token0, address token1) public {
+        _token0 = token0;
+        _token1 = token1;
+    }
+
+    function token0() external view returns (address) {
+        return _token0;
+    }
+
+    function token1() external view returns (address) {
+        return _token1;
+    }
+
     function getReserves() external view returns (uint112, uint112, uint32) {
         return (reserve0, reserve1, blockTimestampLast);
     }
@@ -51,8 +67,6 @@ contract MockUniswapV2PairTrade is IUniswapV2Pair {
 
     function MINIMUM_LIQUIDITY() external pure returns (uint) { revert("Should not use"); }
     function factory() external view returns (address) { revert("Should not use"); }
-    function token0() external view returns (address) { revert("Should not use"); }
-    function token1() external view returns (address) { revert("Should not use"); }
     function kLast() external view returns (uint) { revert("Should not use"); }
 
     function mint(address to) external returns (uint liquidity) { revert("Should not use"); }

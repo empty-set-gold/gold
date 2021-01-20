@@ -4,8 +4,9 @@ pragma experimental ABIEncoderV2;
 
 import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
 import "../token/IGold.sol";
-import "../oracle/IOracle.sol";
 import "../external/Decimal.sol";
+import "../oracle/legacy/IOracle.sol";
+import "../oracle/IHybridOraclePool.sol";
 
 contract Account {
     enum Status {
@@ -85,8 +86,14 @@ contract Storage {
         mapping(uint256 => Epoch.State) epochs;
         mapping(address => Candidate.State) candidates;
     }
+
+    struct HybridOracleState {
+        IHybridOraclePool hybridOracle;
+        bool isEnabled;
+    }
 }
 
 contract State {
     Storage.State _state;
+    Storage.HybridOracleState _hybridOracleState;
 }
