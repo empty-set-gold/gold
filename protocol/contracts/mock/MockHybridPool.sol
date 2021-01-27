@@ -9,7 +9,6 @@ contract MockHybridPool is HybridPoolBase {
     uint256 _goldReserve;
     uint256 _backingAssetReserve;
     bool _mockLocalReserves;
-    bool _delegateBondedAndStaged;
 
     constructor(address gold, address univ2, address backingAssetOracle) HybridPoolBase(univ2, backingAssetOracle) public {
         _gold = gold;
@@ -47,10 +46,9 @@ contract MockHybridPool is HybridPoolBase {
 
     function getReserves(address tokenA, address tokenB) internal view returns (uint reserveA, uint reserveB) {
         if(_mockLocalReserves) {
-            reserveA = _goldReserve;
-            reserveB = _backingAssetReserve;
+            (reserveA, reserveB) = (_goldReserve, _backingAssetReserve);
         } else {
-            (reserveA, reserveB,) = IUniswapV2Pair(address(univ2())).getReserves();
+            (reserveA, reserveB,) = univ2().getReserves();
         }
     }
 }

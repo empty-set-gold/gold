@@ -15,33 +15,33 @@ const uint112s = (time, priceNum = 1, priceDen = 1) =>
 
 describe('Chainlink/Uniswap HybridOracle Implementation', () => {
     it('should only allow treasury and DAO to set the parent Hybrid Oracle address', async () => {
-        await expectRevert(this.oracle.setHybridOracleAddress(mockDaoAddress, {from: userA}),
+        await expectRevert(this.oracle.setHybridOraclePoolAddress(mockDaoAddress, {from: userA}),
             "Mock_Oracle: Not Treasury or DAO"
         )
 
-        await expectRevert(this.oracle.setHybridOracleAddress(mockDaoAddress, {from: userB}),
+        await expectRevert(this.oracle.setHybridOraclePoolAddress(mockDaoAddress, {from: userB}),
             "Mock_Oracle: Not Treasury or DAO"
         )
 
         await this.oracle.setDaoAddress(userA, {from: mockDaoAddress})
         await this.oracle.setTreasuryAddress(userB, {from: mockDaoAddress})
 
-        await this.oracle.setHybridOracleAddress(mockDaoAddress, {from: userA})
-        await this.oracle.setHybridOracleAddress(mockDaoAddress, {from: userB})
+        await this.oracle.setHybridOraclePoolAddress(mockDaoAddress, {from: userA})
+        await this.oracle.setHybridOraclePoolAddress(mockDaoAddress, {from: userB})
 
-        await expectRevert(this.oracle.setHybridOracleAddress(mockDaoAddress, {from: mockDaoAddress}),
+        await expectRevert(this.oracle.setHybridOraclePoolAddress(mockDaoAddress, {from: mockDaoAddress}),
             "Mock_Oracle: Not Treasury or DAO"
         )
     })
 
     it('should not allow the Hybrid Oracle address to be set to null', async () => {
-        await expectRevert(this.oracle.setHybridOracleAddress('0x0000000000000000000000000000000000000000', {from: mockDaoAddress}),
+        await expectRevert(this.oracle.setHybridOraclePoolAddress('0x0000000000000000000000000000000000000000', {from: mockDaoAddress}),
             "Mock_Oracle: Hybrid Oracle cannot be null"
         )
     })
 
     it('should only allow the Hybrid Oracle to call capture', async () => {
-        await this.oracle.setHybridOracleAddress(userB, {from: mockDaoAddress})
+        await this.oracle.setHybridOraclePoolAddress(userB, {from: mockDaoAddress})
 
         await expectRevert(this.oracle.capture({from: userA}),
             "Mock_Oracle: Not Hybrid Oracle"
@@ -278,23 +278,29 @@ describe('Chainlink/Uniswap HybridOracle Implementation', () => {
         )
     });
 
-    it('should work as expected with backing assets of a differing number of decimals', async () => {
+    it('should work as expected with price feeds of a differing number of decimals', async () => {
+        await setup({backingAssetDecimals: 18, goldFeedDecimals: 8, backingFeedDecimals: 8, reserveMinimum: 1e18})
+        await initializeBn({esgBalance: new BN(100e18.toString()), backingAssetBalance: new BN(150e18.toString())})
         await simulateBackingAssetPriceChange({newPrice: 1000, newDecimals: 0})
-        await initialize({esgBalance: 10, backingAssetBalance: 15})
+        await simulateGoldPriceChange({newPrice: 1000e8, newDecimals: 8})
         await captureAndAssert({ratio: 1.5, valid: true},
             'The initial price ratio should be reported'
         )
 
-        await nextEpoch()
-        await simulateBackingAssetPriceChange({newPrice: 1000e8, newDecimals: 8})
+        await setup({backingAssetDecimals: 6, goldFeedDecimals: 5, backingFeedDecimals: 0, reserveMinimum: 1e6})
+        await initializeBn({esgBalance: new BN(100e18.toString()), backingAssetBalance: new BN(150e6.toString())})
+        await simulateBackingAssetPriceChange({newPrice: 1000, newDecimals: 0})
+        await simulateGoldPriceChange({newPrice: 1000e5, newDecimals: 5})
         await captureAndAssert({ratio: 1.5, valid: true},
-            'The initial price ratio should be reported'
+            'The initial price ratio should still be reported'
         )
 
-        await nextEpoch();
-        await simulateBackingAssetPriceChange({newPrice: 1000e12, newDecimals: 12})
+        await setup({backingAssetDecimals: 10, goldFeedDecimals: 10, backingFeedDecimals: 4, reserveMinimum: 1e10})
+        await initializeBn({esgBalance: new BN(10e18.toString()), backingAssetBalance: new BN(15e10.toString())})
+        await simulateBackingAssetPriceChange({newPrice: 1000e4, newDecimals: 4})
+        await simulateGoldPriceChange({newPrice: 1000e10, newDecimals: 10})
         await captureAndAssert({ratio: 1.5, valid: true},
-            'The initial price ratio should be reported'
+            'The initial price ratio should still be reported (ratio is not changing, only decimals of various price feeds/the asset backing ERC20)'
         )
     })
 
@@ -369,16 +375,23 @@ describe('Chainlink/Uniswap HybridOracle Implementation', () => {
         return timestampOfFirstTrade
     }
 
-    const setup = async ({decimals}) => {
+    const initializeBn = async ({esgBalance, backingAssetBalance}) => {
+        await this.amm.simulateTrade(esgBalance, backingAssetBalance)
+        const timestampOfFirstTrade = await time.latest();
+        await nextEpoch()
+        await capture()
+        return timestampOfFirstTrade
+    }
+
+    const setup = async ({backingAssetDecimals, backingFeedDecimals, goldFeedDecimals, reserveMinimum}) => {
         this.gold = await Gold.new({from: mockDaoAddress})
-        this.mockBackingAsset = await MockBackingAsset.new({from: mockDaoAddress})
+        this.mockBackingAsset = await MockBackingAsset.new(backingAssetDecimals, {from: mockDaoAddress})
         this.amm = await MockUniswapV2PairTrade.new(this.gold.address, this.mockBackingAsset.address, {from: mockDaoAddress})
 
         const initialPrice = 1000e8
-        this.goldOracle = await MockAggregatorV3Interface.new(decimals, initialPrice, {from: mockDaoAddress})
-        this.backingAssetOracle = await MockAggregatorV3Interface.new(decimals, initialPrice, {from: mockDaoAddress})
+        this.goldOracle = await MockAggregatorV3Interface.new(goldFeedDecimals, initialPrice, {from: mockDaoAddress})
+        this.backingAssetOracle = await MockAggregatorV3Interface.new(backingFeedDecimals, initialPrice, {from: mockDaoAddress})
 
-        const [reserveMinimum, decimalOffset] = [1e18, 0];
         this.oracle = await MockHybridOracle.new(
             this.amm.address,
             this.gold.address,
@@ -386,12 +399,12 @@ describe('Chainlink/Uniswap HybridOracle Implementation', () => {
             this.goldOracle.address,
             web3.utils.stringToHex("Mock_Oracle"),
             reserveMinimum.toString(),
-            decimalOffset.toString(),
             {from: mockDaoAddress, gas: 8000000}
         )
 
-        await this.oracle.setHybridOracleAddress(mockDaoAddress, {from: mockDaoAddress})
+        await this.oracle.setHybridOraclePoolAddress(mockDaoAddress, {from: mockDaoAddress})
     }
 
-    beforeEach(async () => await setup({decimals: 8}))
+    const defaultParams = {backingAssetDecimals: 18, goldFeedDecimals: 8, backingFeedDecimals: 8, reserveMinimum: 1e18}
+    beforeEach(async () => await setup(defaultParams))
 });

@@ -40,14 +40,14 @@ describe('Regulator', function () {
     });
 
     it('should call the hybrid oracle capture, and also maintain the legacy oracle TWAP when the hybrid oracle is on', async function () {
-      await this.regulator.setHybridOracleEnabledE(true)
+      await this.regulator.setHybridOraclePoolEnabledE(true)
       await this.regulator.stepE()
       expect(await this.stubHybridOracle.captureCalled()).to.be.true
       expect(await this.oracle.captureCalled()).to.be.true
     })
 
     it('should call only the legacy oracle capture when the hybrid oracle is off', async function () {
-      await this.regulator.setHybridOracleEnabledE(false)
+      await this.regulator.setHybridOraclePoolEnabledE(false)
       await this.regulator.stepE()
       expect(await this.stubHybridOracle.captureCalled()).to.be.false
       expect(await this.oracle.captureCalled()).to.be.true

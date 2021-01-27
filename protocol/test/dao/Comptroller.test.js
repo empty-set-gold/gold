@@ -13,23 +13,23 @@ describe('Comptroller', function () {
   const [ ownerAddress, userAddress, poolAddress, circulating ] = accounts;
 
   beforeEach(async function () {
-    this.hybridOracleStub = await StubHybridOraclePool.new({from: ownerAddress})
-    this.comptroller = await MockComptroller.new(poolAddress, this.hybridOracleStub.address, {from: ownerAddress, gas: 8000000});
+    this.hybridOraclePoolStub = await StubHybridOraclePool.new({from: ownerAddress})
+    this.comptroller = await MockComptroller.new(poolAddress, this.hybridOraclePoolStub.address, {from: ownerAddress, gas: 8000000});
     this.gold = await Gold.at(await this.comptroller.gold());
   });
 
   describe('mintToPool', async function () {
     it('should delegate the mint to the hybrid oracle if the hybrid oracle is enabled', async function () {
-      await this.comptroller.setHybridOracleEnabledE(true)
+      await this.comptroller.setHybridOraclePoolEnabledE(true)
       await this.comptroller.increaseSupplyE(1000);
-      expect(await this.hybridOracleStub.distributedAmount()).to.be.bignumber.equal('300')
+      expect(await this.hybridOraclePoolStub.distributedAmount()).to.be.bignumber.equal('300')
       expect(await this.gold.balanceOf(poolAddress)).to.be.bignumber.equal('0')
     })
 
     it('should mint directly to the legacy pool if the hybrid oracle is disabled', async function () {
-      await this.comptroller.setHybridOracleEnabledE(false)
+      await this.comptroller.setHybridOraclePoolEnabledE(false)
       await this.comptroller.increaseSupplyE(1000);
-      expect(await this.hybridOracleStub.distributedAmount()).to.be.bignumber.equal('0')
+      expect(await this.hybridOraclePoolStub.distributedAmount()).to.be.bignumber.equal('0')
       expect(await this.gold.balanceOf(poolAddress)).to.be.bignumber.equal('300')
     })
   });

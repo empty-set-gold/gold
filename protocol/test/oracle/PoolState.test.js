@@ -3,7 +3,7 @@ const { accounts, contract } = require('@openzeppelin/test-environment');
 const { BN, expectRevert, time } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 
-const MockPoolState = contract.fromArtifact('MockPoolState');
+const MockHybridPoolState = contract.fromArtifact('MockHybridPoolState');
 const MockSettableDAO = contract.fromArtifact('MockSettableDAO');
 const MockToken = contract.fromArtifact('MockToken');
 
@@ -13,7 +13,7 @@ describe('PollState', function () {
   beforeEach(async function () {
     this.dao = await MockSettableDAO.new({from: ownerAddress});
     this.gold = await MockToken.new("Empty Set Gold", "ESG", 18, {from: ownerAddress});
-    this.setters = await MockPoolState.new({from: ownerAddress});
+    this.setters = await MockHybridPoolState.new({from: ownerAddress});
     await this.setters.set(this.dao.address, this.gold.address);
   });
 

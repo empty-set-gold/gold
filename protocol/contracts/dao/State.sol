@@ -87,13 +87,13 @@ contract Storage {
         mapping(address => Candidate.State) candidates;
     }
 
-    struct HybridOracleState {
-        IHybridOraclePool hybridOracle;
+    struct HybridOraclePoolState {
+        IHybridOraclePool hybridOraclePool;
         bool isEnabled;
     }
 }
 
 contract State {
     Storage.State _state;
-    Storage.HybridOracleState _hybridOracleState;
+    Storage.HybridOraclePoolState _hybridLiquidityState;
 }

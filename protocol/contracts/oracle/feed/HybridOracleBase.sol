@@ -2,23 +2,22 @@
 pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
+import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
 import "@chainlink/contracts/src/v0.5/interfaces/AggregatorV3Interface.sol";
-import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
 import "../../external/UniswapV2OracleLibrary.sol";
-import "../../external/UniswapV2Library.sol";
 import "../../external/Require.sol";
 import "../../external/Decimal.sol";
 import "../../Constants.sol";
 import "./IHybridOracle.sol";
-import "../GoldFeed.sol";
 import "../../Utils.sol";
 
-contract HybridOracleBase is IHybridOracle, GoldFeed {
+contract HybridOracleBase is IHybridOracle {
     using Decimal for Decimal.D256;
     bytes32 private _file;
     IUniswapV2Pair internal _pair;
     AggregatorV3Interface internal _backingAssetPriceFeed;
+    AggregatorV3Interface internal _goldFeed;
 
     bool internal _initialized;
     uint256 internal _index;
@@ -26,59 +25,49 @@ contract HybridOracleBase is IHybridOracle, GoldFeed {
     uint32 internal _timestamp;
     uint256 internal _reserve;
     uint256 internal _reserveMinimum;
-    uint256 internal _decimalOffset;
-    address internal _numerator;
-    address internal _hybridOracle;
+    address internal _esg;
+    address internal _hybridOraclePool;
 
     bool lastRatioValid;
     Decimal.D256 lastEsgPerGoldViaBackingAsset;
 
     constructor (
         address pair,
-        address numerator,
+        address esg,
         address assetBackingUsdOracle,
         address goldOracle,
         bytes32 file,
-        uint256 reserveMinimum,
-        uint256 decimalOffset
-    ) GoldFeed(goldOracle) public {
+        uint256 reserveMinimum
+    ) public {
         _backingAssetPriceFeed = AggregatorV3Interface(assetBackingUsdOracle);
+        _goldFeed = AggregatorV3Interface(goldOracle);
         _file = file;
-        _decimalOffset = decimalOffset;
         _pair = IUniswapV2Pair(pair);
         _reserveMinimum = reserveMinimum;
-        _numerator = numerator;
+        _esg = esg;
         lastRatioValid = false;
         lastEsgPerGoldViaBackingAsset = Decimal.one();
-        _hybridOracle = Constants.getHybridOraclePoolAddress();
+        _hybridOraclePool = Constants.getHybridOraclePoolAddress();
         setup();
     }
 
-    function setHybridOracleAddress(address parentAddress) onlyDaoOrTreasury external {
+    function setHybridOraclePoolAddress(address parentAddress) onlyDaoOrTreasury external {
         Require.that(parentAddress != address(0), _file, "Hybrid Oracle cannot be null");
-        _hybridOracle = parentAddress;
+        _hybridOraclePool = parentAddress;
     }
 
     function setup() private {
         (address token0, address token1) = (_pair.token0(), _pair.token1());
-        _index = _numerator == token0 ? 0 : 1;
-        Require.that(_index == 0 || _numerator == token1, _file, "Target numerator not found");
+        _index = _esg == token0 ? 0 : 1;
+        Require.that(_index == 0 || _esg == token1, _file, "ESG not found");
     }
 
-    function capture() public onlyHybridOracle returns (Decimal.D256 memory, bool) {
+    function capture() public onlyHybridOraclePool returns (Decimal.D256 memory, bool) {
         if (_initialized) {
             return updateOracle();
         } else {
             return initializeOracle();
         }
-    }
-
-    function backingAssetUsdPrice() public view returns (Decimal.D256 memory) {
-        (uint80 roundID, int price, uint startedAt, uint timeStamp, uint80 answeredInRound) =
-            _backingAssetPriceFeed.latestRoundData();
-
-        uint256 adjustedPrice = Utils.normalizeToDecimals(uint(price), uint(_backingAssetPriceFeed.decimals()), 18);
-        return Decimal.D256({value: adjustedPrice});
     }
 
     function initializeOracle() private returns (Decimal.D256 memory, bool) {
@@ -108,6 +97,20 @@ contract HybridOracleBase is IHybridOracle, GoldFeed {
         return lastCapture();
     }
 
+    function backingAssetUsdPrice() public view returns (Decimal.D256 memory) {
+        (uint80 roundID, int price, uint startedAt, uint timeStamp, uint80 answeredInRound) =
+            _backingAssetPriceFeed.latestRoundData();
+
+        return Decimal.D256({value: Utils.normalizeToDecimals(uint(price), uint(_backingAssetPriceFeed.decimals()), 18)});
+    }
+
+    function goldPrice() public view returns (Decimal.D256 memory) {
+        (uint80 roundID, int price, uint startedAt, uint timeStamp, uint80 answeredInRound) =
+            _goldFeed.latestRoundData();
+
+        return Decimal.D256({value: Utils.normalizeToDecimals(uint(price), uint(_goldFeed.decimals()), 18)});
+    }
+
     function backingAssetReserveTooLow(uint256 previousReserve) private returns (bool) {
         return previousReserve < _reserveMinimum || _reserve < _reserveMinimum;
     }
@@ -127,7 +130,8 @@ contract HybridOracleBase is IHybridOracle, GoldFeed {
         _timestamp = blockTimestamp;
         _cumulative = priceCumulative;
 
-        return price.mul(10 ** _decimalOffset);
+        address backingAsset = _pair.token0() == _esg ? _pair.token1() : _pair.token0();
+        return Decimal.D256({value: Utils.normalizeToDecimals(price.value, ERC20Detailed(backingAsset).decimals(), 18)});
     }
 
     function updateReserve() private returns (uint256) {
@@ -157,8 +161,8 @@ contract HybridOracleBase is IHybridOracle, GoldFeed {
         return Constants.getTreasuryAddress();
     }
 
-    modifier onlyHybridOracle() {
-        Require.that(_hybridOracle != address(0) && msg.sender == _hybridOracle, _file, "Not Hybrid Oracle");
+    modifier onlyHybridOraclePool() {
+        Require.that(_hybridOraclePool != address(0) && msg.sender == _hybridOraclePool, _file, "Not Hybrid Oracle");
         _;
     }
 

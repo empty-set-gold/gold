@@ -11,7 +11,6 @@ contract SXAU_ESG_HybridOracle is HybridOracleBase {
         0x214eD9Da11D2fbe465a6fc601a91E62EbEc1a0D6, // XAU/USD feed
         0x214eD9Da11D2fbe465a6fc601a91E62EbEc1a0D6, // XAU/USD feed, a little redundant here, but consistent
         "SXAU_ESG_Oracle",
-        1e18,
-        0
+        1e18
     ) {}
 }

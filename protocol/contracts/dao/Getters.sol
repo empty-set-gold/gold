@@ -54,8 +54,8 @@ contract Getters is State {
         return _state.provider.oracle;
     }
 
-    function hybridOracle() public view returns (IHybridOraclePool) {
-        return _hybridOracleState.hybridOracle;
+    function hybridOraclePool() public view returns (IHybridOraclePool) {
+        return _hybridLiquidityState.hybridOraclePool;
     }
 
     function pool() public view returns (address) {

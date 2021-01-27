@@ -2,7 +2,6 @@
 pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
-import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
 import "../external/Decimal.sol";
 import "../oracle/feed/HybridOracleBase.sol";
 
@@ -18,16 +17,14 @@ contract MockHybridOracle is HybridOracleBase {
         address backingAssetOracle,
         address goldFeed,
         bytes32 errorLogPrefix,
-        uint256 reserveMin,
-        uint256 decimalOffset
+        uint256 reserveMin
     ) HybridOracleBase(
         pair,
         gold,
         backingAssetOracle,
         goldFeed,
         errorLogPrefix,
-        reserveMin,
-        decimalOffset
+        reserveMin
     ) public {
         _dao = msg.sender;
         _treasuryAddress = msg.sender;

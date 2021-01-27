@@ -2,7 +2,6 @@
 pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
-import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
 import "../oracle/feed/IHybridOracle.sol";
 
 contract StubHybridOracle is IHybridOracle {
@@ -34,5 +33,5 @@ contract StubHybridOracle is IHybridOracle {
     }
 
     function pair() external view returns (address) { revert("Not Implemented"); }
-    function setHybridOracleAddress(address parentAddress) external { revert("Not Implemented"); }
+    function setHybridOraclePoolAddress(address parentAddress) external { revert("Not Implemented"); }
 }

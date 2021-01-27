@@ -8,9 +8,9 @@ import "./MockComptroller.sol";
 import "./MockState.sol";
 
 contract MockRegulator is MockComptroller, Regulator {
-    constructor (address oracle, address pool, address hybridOracle) MockComptroller(pool, hybridOracle) public {
+    constructor (address oracle, address pool, address hybridOraclePool) MockComptroller(pool, hybridOraclePool) public {
         _state.provider.oracle = IOracle(oracle);
-        _hybridOracleState.hybridOracle = IHybridOraclePool(hybridOracle);
+        _hybridLiquidityState.hybridOraclePool = IHybridOraclePool(hybridOraclePool);
     }
 
     function stepE() external {
@@ -21,7 +21,7 @@ contract MockRegulator is MockComptroller, Regulator {
         return epoch <= 5;
     }
 
-    function setHybridOracleEnabledE(bool enabled) external {
-        setHybridOracleEnabled(enabled);
+    function setHybridOraclePoolEnabledE(bool enabled) external {
+        setHybridOraclePoolEnabled(enabled);
     }
 }

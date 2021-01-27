@@ -2,10 +2,6 @@
 pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
-import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
-import "../external/UniswapV2OracleLibrary.sol";
-import "../external/UniswapV2Library.sol";
 import "../external/Require.sol";
 import "../external/Decimal.sol";
 import "../Constants.sol";
@@ -16,7 +12,6 @@ import "../oracle/pool/IHybridPool.sol";
 
 contract HybridOraclePool is IHybridOraclePool {
     using Decimal for Decimal.D256;
-    using SafeMath for uint256;
     bytes32 private constant FILE = "HybridOraclePool";
 
     struct LiquidityPair {

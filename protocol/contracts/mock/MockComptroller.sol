@@ -7,14 +7,14 @@ import "../token/Gold.sol";
 import "./MockState.sol";
 
 contract MockComptroller is Comptroller, MockState {
-    constructor(address pool, address hybridOracle) public {
+    constructor(address pool, address hybridOraclePool) public {
         _state.provider.gold = new Gold();
         _state.provider.pool = pool;
-        _hybridOracleState.hybridOracle = IHybridOraclePool(hybridOracle);
+        _hybridLiquidityState.hybridOraclePool = IHybridOraclePool(hybridOraclePool);
     }
 
-    function setHybridOracleEnabledE(bool enabled) external {
-        setHybridOracleEnabled(enabled);
+    function setHybridOraclePoolEnabledE(bool enabled) external {
+        setHybridOraclePoolEnabled(enabled);
     }
 
     function mintToAccountE(address account, uint256 amount) external {

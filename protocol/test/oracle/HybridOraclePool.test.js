@@ -270,7 +270,7 @@ describe('HybridOraclePool Implementation', () => {
         this.gold.balanceOf(address, {from: mockDaoAddress})
 
     const lastCapture = async () => {
-        const result = await this.hybridOracle.lastCapture();
+        const result = await this.hybridOraclePool.lastCapture();
         const ratio = result[0].value;
         const valid = result[1];
         return {ratio, valid};
@@ -280,8 +280,8 @@ describe('HybridOraclePool Implementation', () => {
         new BN(n * 1000000000000).mul(new BN(1e6.toString())).toString()
 
     const capture = async ({from}) => {
-        await this.hybridOracle.capture({from: from || mockDaoAddress})
-        const result = await this.hybridOracle.lastCapture()
+        await this.hybridOraclePool.capture({from: from || mockDaoAddress})
+        const result = await this.hybridOraclePool.lastCapture()
         const ratio = result[0].value
         const valid = result[1]
         return {ratio, valid}
@@ -289,19 +289,19 @@ describe('HybridOraclePool Implementation', () => {
     }
 
     const addOraclePoolPair = async ({oracle, pool, from}) => {
-        await this.hybridOracle.addOraclePoolPair(oracle, pool, {from: from || mockDaoAddress})
+        await this.hybridOraclePool.addOraclePoolPair(oracle, pool, {from: from || mockDaoAddress})
     }
 
     const removeOraclePoolPair = async ({index, from}) =>
-        await this.hybridOracle.removeOraclePoolPair(index, {from: from || mockDaoAddress})
+        await this.hybridOraclePool.removeOraclePoolPair(index, {from: from || mockDaoAddress})
 
     const oraclePoolPair = async (index) => {
-        const pair = await this.hybridOracle.oraclePoolPairs(index, {from: mockDaoAddress})
+        const pair = await this.hybridOraclePool.oraclePoolPairs(index, {from: mockDaoAddress})
         return {oracle: pair.oracle, pool: pair.pool};
     }
 
     const getOraclePoolPairs = async () => {
-        const pairs = await this.hybridOracle.getOraclePoolPairs({from: mockDaoAddress})
+        const pairs = await this.hybridOraclePool.getOraclePoolPairs({from: mockDaoAddress})
         return pairs.map(pair => ({oracle: pair.oracle, pool: pair.pool}))
     }
 
@@ -313,7 +313,7 @@ describe('HybridOraclePool Implementation', () => {
         await oracle.setCapture(ratio, valid)
 
     const getPoolWeights = async () =>
-        (await this.hybridOracle.getPoolWeights.call()).map(r => new BN(r.value))
+        (await this.hybridOraclePool.getPoolWeights.call()).map(r => new BN(r.value))
 
     const share = (pc) => new BN((pc * 1e18).toString())
 
@@ -332,17 +332,17 @@ describe('HybridOraclePool Implementation', () => {
     }
 
     const indexOfOracle = async (oracleAddress) =>
-        this.hybridOracle.indexOfOracle(oracleAddress, {from: mockDaoAddress})
+        this.hybridOraclePool.indexOfOracle(oracleAddress, {from: mockDaoAddress})
 
     const addresses = (pairs) =>
         pairs.map(({oracle, pool}) => ({oracle: oracle.address, pool: pool.address}))
 
 
     const indexOfPool = async (poolAddress) =>
-        this.hybridOracle.indexOfPool(poolAddress, {from: mockDaoAddress})
+        this.hybridOraclePool.indexOfPool(poolAddress, {from: mockDaoAddress})
 
     const distributeToPools = ({from, amount}) =>
-        this.hybridOracle.distributeToPools.sendTransaction(amount, {from: from || mockDaoAddress})
+        this.hybridOraclePool.distributeToPools.sendTransaction(amount, {from: from || mockDaoAddress})
 
     const MAX_UINT256 = new BN(2).pow(new BN(256)).subn(1);
 
@@ -363,13 +363,13 @@ describe('HybridOraclePool Implementation', () => {
     beforeEach(async () => {
         await initMocks()
         this.gold = await Gold.new({from: mockDaoAddress})
-        this.hybridOracle = await MockHybridOraclePool.new(
+        this.hybridOraclePool = await MockHybridOraclePool.new(
             this.gold.address,
             mockDaoAddress,
             mockTreasuryAddress,
             {from: mockDaoAddress, gas: 8000000}
         )
 
-        await this.gold.addMinter(this.hybridOracle.address, {from: mockDaoAddress})
+        await this.gold.addMinter(this.hybridOraclePool.address, {from: mockDaoAddress})
     })
 });

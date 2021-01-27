@@ -40,7 +40,7 @@ describe('Oracle', function () {
   beforeEach(async function () {
     const [decimals, initialPrice, reserveMinimum, decimalOffset] = [8, 1000e8, 1e18, 0]
     this.gold = await Gold.new({from: ownerAddress});
-    this.mockBackingAsset = await MockBackingAsset.new({from: ownerAddress})
+    this.mockBackingAsset = await MockBackingAsset.new(18, {from: ownerAddress})
     this.amm = await MockUniswapV2PairTrade.new(this.gold.address, this.mockBackingAsset.address, {from: ownerAddress})
     this.goldOracle = await MockAggregatorV3Interface.new(decimals, initialPrice, {from: ownerAddress})
     this.backingAssetOracle = await MockAggregatorV3Interface.new(decimals, initialPrice, {from: ownerAddress})
@@ -51,10 +51,9 @@ describe('Oracle', function () {
         this.goldOracle.address,
         web3.utils.stringToHex("Mock_Oracle"),
         reserveMinimum.toString(),
-        decimalOffset.toString(),
         {from: ownerAddress, gas: 8000000}
     )
-    await this.oracle.setHybridOracleAddress(ownerAddress, {from: ownerAddress})
+    await this.oracle.setHybridOraclePoolAddress(ownerAddress, {from: ownerAddress})
 
     await time.increase(3600);
   });

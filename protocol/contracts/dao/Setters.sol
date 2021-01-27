@@ -175,7 +175,7 @@ contract Setters is State, Getters {
         _state.candidates[candidate].initialized = true;
     }
 
-    function setHybridOracleEnabled(bool enabled) internal {
-        _hybridOracleState.isEnabled = enabled;
+    function setHybridOraclePoolEnabled(bool enabled) internal {
+        _hybridLiquidityState.isEnabled = enabled;
     }
 }

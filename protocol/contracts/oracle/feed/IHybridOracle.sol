@@ -9,5 +9,5 @@ contract IHybridOracle {
     function pair() external view returns (address);
     function backingAssetUsdPrice() external view returns (Decimal.D256 memory);
     function lastCapture() public view returns (Decimal.D256 memory, bool);
-    function setHybridOracleAddress(address parentAddress) external;
+    function setHybridOraclePoolAddress(address parentAddress) external;
 }

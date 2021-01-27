@@ -17,22 +17,22 @@ contract Implementation is State, Bonding, Market, Regulator, Govern {
     event Incentivization(address indexed account, uint256 amount);
 
     function initialize() initializer public {
-        setHybridOracleEnabled(true);
-        _hybridOracleState.hybridOracle = IHybridOraclePool(Constants.getHybridOraclePoolAddress());
+        setHybridOraclePoolEnabled(true);
+        _hybridLiquidityState.hybridOraclePool = IHybridOraclePool(Constants.getHybridOraclePoolAddress());
 
         (address sXAU_Oracle, address sXAU_Pool) = Constants.get_SXAU_ESG_Addresses();
         (address wETH_Oracle, address wETH_Pool) = Constants.get_WETH_ESG_Addresses();
         (address DAI_Oracle, address DAI_Pool) = Constants.get_DAI_ESG_Addresses();
 
-        _hybridOracleState.hybridOracle.addOraclePoolPair(sXAU_Oracle, sXAU_Pool);
-        _hybridOracleState.hybridOracle.addOraclePoolPair(wETH_Oracle, wETH_Pool);
-        _hybridOracleState.hybridOracle.addOraclePoolPair(DAI_Oracle, DAI_Pool);
+        _hybridLiquidityState.hybridOraclePool.addOraclePoolPair(sXAU_Oracle, sXAU_Pool);
+        _hybridLiquidityState.hybridOraclePool.addOraclePoolPair(wETH_Oracle, wETH_Pool);
+        _hybridLiquidityState.hybridOraclePool.addOraclePoolPair(DAI_Oracle, DAI_Pool);
 
         Gold(address(gold())).addMinter(Constants.getHybridOraclePoolAddress());
     }
 
     function toggleOracleImplementation() external onlyTreasury {
-        setHybridOracleEnabled(!_hybridOracleState.isEnabled);
+        setHybridOraclePoolEnabled(!_hybridLiquidityState.isEnabled);
     }
 
     function advance() external {

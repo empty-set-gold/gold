@@ -64,7 +64,7 @@ contract Regulator is Comptroller {
 
     function oracleCapture() private returns (Decimal.D256 memory) {
         (Decimal.D256 memory price, bool valid) =
-            _hybridOracleState.isEnabled ? hybridCapture() : legacyCapture();
+            _hybridLiquidityState.isEnabled ? hybridCapture() : legacyCapture();
 
         if (bootstrappingAt(epoch().sub(1))) {
             return Constants.getBootstrappingPrice();
@@ -85,6 +85,6 @@ contract Regulator is Comptroller {
         // TODO: oracle().capture can be removed when legacy oracle toggle is removed.
         // We need to keep the legacy oracle TWAP maintained in case we need to switch back.
         oracle().capture();
-        return hybridOracle().capture();
+        return hybridOraclePool().capture();
     }
 }

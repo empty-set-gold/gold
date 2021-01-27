@@ -1,9 +1,8 @@
 
 pragma solidity ^0.5.17;
+pragma experimental ABIEncoderV2;
 
 import "../oracle/pool/IHybridPool.sol";
-
-pragma experimental ABIEncoderV2;
 
 contract StubHybridPool is IHybridPool {
     uint256 _usdValueBonded;
