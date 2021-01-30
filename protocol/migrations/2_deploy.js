@@ -36,8 +36,8 @@ module.exports = function(deployer) {
           `                                                                                                                       `,
           `   Oracle/Pool Pairs:                                                                                                  `,
           `       DAI/ESG   ~> oracle=${DAI_ESG_Oracle_Address}, pool=${DAI_ESG_Pool_Address}                                     `,
-          `       WETH/ESG  ~> oracle=${SXAU_ESG_Oracle_Address}, pool=${SXAU_ESG_Pool_Address}                                   `,
-          `       SXAU/ESG  ~> oracle=${WETH_ESG_Oracle_Address}, pool=${WETH_ESG_Pool_Address}                                   `,
+          `       SXAU/ESG  ~> oracle=${SXAU_ESG_Oracle_Address}, pool=${SXAU_ESG_Pool_Address}                                   `,
+          `       WETH/ESG  ~> oracle=${WETH_ESG_Oracle_Address}, pool=${WETH_ESG_Pool_Address}                                   `,
           `                                                                                                                       `,
           ` ===================================================================================================================== `
         ]
